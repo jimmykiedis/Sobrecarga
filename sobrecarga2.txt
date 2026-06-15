@@ -1,0 +1,40 @@
+APP name: Sobrecarga
+Hospedagem: GitHub Pages
+Front-end: HTML, CSS, JS, PWA
+banco de dados: Firestore
+Back-end: Firebase
+
+1. características:
+	1.1 Variáveis Base (folhas):
+		- Valores entre 49 e 99;
+		- São valores que alimentam as variáveis cardinais;
+		- São objetos que recebem parâmetros como um slider para representar o tempo: 30 dias (ou menos), 90 dias, 1 ano e 5 anos (o slide influencia na cor, logo na proximidade temporal entre o fato e a variável.);
+
+	1.2 Variáveis Cardinais (tronco/principais):
+		- São valores obtidos a partir da média de valores das folhas;
+		- Também é possível incrementar o valores cardinais (o que influencia de maneira natural nas folhas, ou seja, se diminuir o valor de uma variável cardinal, é repassado por média a diferença para as demais variáveis folhas, o teto do valor inteiro).
+
+	1.3 A interface falha pro gráficos:
+		- Gráficos de radar (spider chart) mostram parâmetros como [identidade, saúde mental, saúde física, família, profissional], ou seja, as variáveis cardinais, para detalhes bons que estão incrementados;
+		- O gráfico é acompanhado de uma representação gráfica do sentimento (um emoji por exemplo). E ao iniciar o app, mostrar claramente que esse foi o ultimo estado de espirito, e se não estiver o mesmo, deve se solicitar que o usuário decremente um dos valores das variáveis cardinais, para representar que aquele âmbito o deixou chateado.
+		- As variáveis cardinais são as reais controladoras dos emoji de estado de espirito.
+
+	1.4 Inicio e finalização de sessão, pedindo dados:
+		- Como o app é feito para ser dinâmico, ele deve ser procedural, começa-se em cima, e vai descendo alterando parâmetros, ou incrementando valores.
+		- Ao se iniciar o App deve ser perguntar sobre o estado de espirito (contido em 1.3, inciso 2, 3)
+		- Faz-se uma pergunta a cerca da "passo escolhido na semana anterior" (continho em 1.4, parâmetro 5) que pergunta: "Como foi o nosso desenvolvimento desde que definimos este passo?"
+		- Existe uma variável/parâmetro que se chama "conselho da vez", retirado de uma variável base, que aparece logo após. Esses concelhos de variáveis base são baseados nas variáveis menos requisitadas recentemente, ou seja, se não altera valores daquela variável, então quer dizer que está indo bem, ou não, e o parâmetro precisa melhorar, ou que foi feito um bom trabalho para alcançar aquele valor, tudo para o usuário não esquecer a variável base.
+		- Ao finalizar o ultimo parâmetro, é feito um salvamento parcial (para não perder dados), então um pop-up aparece na tela com uma pergunta: "Qual é o próximo passo concreto que melhoraria minha vida nos próximos 7 dias?", e para respoder essa lista é possivel abrir um modal com todas as variáveis base que tem os prazos mais próximos. 
+
+2. Estrutura:
+	2.1 As váriaves (cardinais ou base) são objetos de suas determinadas classes, carregam parametros de acordo com a sua caracteristica:
+		- Folhas com prazo em dias a reais a partir da criação;
+		- Folhas irmãs, é possivel criar folhas e atribuir elas como irmãs, de forma que vc pode acompanhar uma e ter um atalho para ver a outra;
+		- Contém campos de observação, para uma auto-lembrança quando esquercer o que realmente significava aquela folha;
+		- Elas mudam de cor de acordo com seus prazos definidos no começo, se o usuário criou em maio, para 90 dias, ele sabe que ela era pra 90 dias, mesmo que ele já esteja em dezembro, o intuito é "não gerar ansiedade" por deixar trabalhos para trás.
+		- As variáveis são ocultaveis, pode ser remover uma variável para a lixeira, como também pode restaurar ela ao seu lugar;
+	2.2 As variáveis cardinais são troncos de árvores, e para criar as folhas devemos facilitar colocando um lugar que recebe folhas separadas por virgulas, o que facilitaria a criação de folhas;
+	2.3 Há uma lista de variáveis base esquecidas, que há tempo não são alteradas, podemos usar essa lista para dar o "concelho da vez", de forma que o usuário sempre poderá lembrar da variável que esqueceu;
+	2.4 O sistema é pensado para ser usado 1 vez a cada 7 dias, mas não podemos descartar a necessidade de um usuário entrar todos os dias para atualizar variáveis, então os concelhos podem ser dados todos os dias, a cada vez que ele entra no app (O botão "fechar", do pop-up marca o concelho como lido, logo não precisa exibir ele novamente, mas os que não tiveram )
+
+	

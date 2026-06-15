@@ -1,0 +1,250 @@
+# Sobrecarga
+
+## Visão Geral
+
+Sobrecarga é um aplicativo voltado para organização psicológica e acompanhamento pessoal durante períodos de alta complexidade emocional, profissional ou familiar.
+
+O sistema não tem como objetivo aumentar produtividade ou gerenciar tarefas.
+
+Seu objetivo é permitir que o usuário visualize, acompanhe e ajuste fatores relevantes da própria vida através de uma estrutura baseada em variáveis, prazos e revisões periódicas.
+
+A proposta central é transformar preocupações abstratas em elementos visuais que possam ser acompanhados ao longo do tempo sem gerar ansiedade.
+
+---
+
+# Arquitetura Técnica
+
+## Hospedagem
+
+* GitHub Pages
+
+## Front-end
+
+* HTML
+* CSS
+* JavaScript
+* PWA
+
+## Banco de Dados
+
+* Firestore
+
+## Backend
+
+* Firebase
+
+---
+
+# Modelo Conceitual
+
+O sistema é composto por dois tipos de variáveis:
+
+## Variáveis Base (Folhas)
+
+Representam elementos específicos da vida do usuário.
+
+Exemplos:
+
+* Dormir melhor
+* Conversar com meu filho
+* Organizar finanças
+* Fazer exercícios
+
+Características:
+
+* Valor numérico entre 49 e 99.
+* Possuem prazo associado.
+* Influenciam uma variável cardinal.
+* Podem conter observações.
+* Podem possuir relacionamento com outras folhas.
+* Podem ser arquivadas ou restauradas.
+
+### Horizonte Temporal
+
+Toda variável base possui um horizonte temporal definido no momento da criação por um botão de slider:
+
+* Curto prazo (até 30 dias)
+* Médio prazo (90 dias)
+* Longo prazo (1 ano)
+* Muito longo prazo (5 anos)
+
+O horizonte é permanente e representa a expectativa original do usuário.
+
+Mesmo após vencido, o prazo não gera alertas negativos.
+
+Seu objetivo é apenas preservar o contexto original da criação da variável.
+
+---
+
+## Variáveis Cardinais (Troncos)
+
+Representam grandes áreas da vida.
+
+Exemplos:
+
+* Identidade
+* Saúde Mental
+* Saúde Física
+* Família
+* Profissional
+
+Características:
+
+* Recebem influência das variáveis base.
+* Exibem uma média consolidada.
+* Podem ser ajustadas manualmente pelo usuário.
+* Ajustes manuais redistribuem proporcionalmente a diferença para suas folhas associadas.
+
+As variáveis cardinais representam o estado geral de cada área da vida.
+
+---
+
+# Estado Emocional
+
+O sistema mantém um indicador de estado emocional representado visualmente.
+
+Exemplos:
+
+* 😃 Muito bem
+* 🙂 Bem
+* 😐 Neutro
+* 😕 Mal
+* 😢 Muito mal
+
+O estado emocional é calculado a partir das variáveis cardinais.
+
+Ao iniciar uma sessão, o aplicativo apresenta:
+
+* Último estado emocional registrado.
+* Pergunta se o usuário continua se sentindo da mesma forma.
+
+Caso a resposta seja negativa:
+
+O usuário é incentivado a identificar qual variável cardinal sofreu alteração recente.
+
+---
+
+# Fluxo de Revisão
+
+O aplicativo foi projetado para uso semanal.
+
+Entretanto, pode ser utilizado diariamente.
+
+Cada sessão segue o seguinte fluxo:
+
+## Etapa 1
+
+Apresentar o último estado emocional registrado.
+
+Pergunta:
+
+"Você continua se sentindo assim?"
+
+---
+
+## Etapa 2
+
+Apresentar o compromisso definido na sessão anterior.
+
+Pergunta:
+
+"Como foi seu desenvolvimento desde que definimos este passo?"
+
+---
+
+## Etapa 3
+
+Apresentar o Conselho da Vez.
+
+---
+
+## Etapa 4
+
+Permitir atualização das variáveis.
+
+O usuário percorre as áreas da vida ajustando valores conforme necessário.
+
+---
+
+## Etapa 5
+
+Salvar alterações.
+
+---
+
+## Etapa 6
+
+Pergunta Final
+
+"Qual é o próximo passo concreto que melhoraria minha vida nos próximos 7 dias?"
+
+A resposta fica registrada para revisão futura.
+
+---
+
+# Conselho da Vez
+
+O Conselho da Vez é um mecanismo de lembrança.
+
+Objetivo:
+
+Evitar que áreas importantes da vida sejam esquecidas.
+
+Funcionamento:
+
+* O sistema monitora variáveis pouco modificadas.
+* Seleciona uma variável esquecida.
+* Exibe sua descrição ou observação ao usuário.
+
+O usuário pode:
+
+* Marcar como lido.
+* Ignorar temporariamente.
+
+Conselhos lidos não são reapresentados.
+
+---
+
+# Relacionamentos Entre Variáveis
+
+## Folhas Irmãs
+
+Duas ou mais variáveis base podem ser relacionadas.
+
+Exemplo:
+
+"Academia"
+
+Relacionada com:
+
+"Qualidade do Sono"
+
+Ao visualizar uma variável, o usuário pode navegar rapidamente para suas irmãs.
+
+---
+
+# Gerenciamento de Variáveis
+
+## Arquivar
+
+Variáveis podem ser removidas da visualização principal.
+
+## Restaurar
+
+Variáveis arquivadas podem retornar ao sistema.
+
+Nenhum dado é perdido.
+
+---
+
+# Objetivo Central do Produto
+
+O aplicativo não busca medir desempenho.
+
+O aplicativo busca oferecer clareza.
+
+Sua principal função é ajudar o usuário a responder regularmente três perguntas:
+
+1. Como estou?
+2. O que mudou?
+3. Qual é o próximo passo concreto?
