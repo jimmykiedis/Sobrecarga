@@ -374,18 +374,38 @@ function buildCardinalsFromLeaves(leaves) {
   );
 }
 
-function nudgeLeaves(leaves, cardinalId, delta) {
-  const related = leaves.filter((leaf) => leaf.cardinalId === cardinalId);
-  if (!related.length || delta === 0) return leaves;
+function adjustCardinalLeaves(leaves, cardinalId, delta) {
+  const relatedIndexes = leaves
+    .map((leaf, index) => (leaf.cardinalId === cardinalId ? index : -1))
+    .filter((index) => index !== -1);
 
-  const step = delta >= 0 ? 1 : -1;
-  const nextLeaves = leaves.map((leaf) => {
-    if (leaf.cardinalId !== cardinalId) return leaf;
-    return {
-      ...leaf,
-      currentValue: clamp(leaf.currentValue + step, 49, 99),
-    };
-  });
+  if (!relatedIndexes.length || delta === 0) return leaves;
+
+  const nextLeaves = leaves.map((leaf) => ({ ...leaf }));
+  let remaining = delta * relatedIndexes.length;
+  const direction = remaining > 0 ? 1 : -1;
+
+  while (remaining !== 0) {
+    let changedInPass = false;
+
+    for (const index of relatedIndexes) {
+      if (remaining === 0) break;
+
+      const leaf = nextLeaves[index];
+      const candidate = clamp(leaf.currentValue + direction, 49, 99);
+      if (candidate === leaf.currentValue) {
+        continue;
+      }
+
+      leaf.currentValue = candidate;
+      remaining -= direction;
+      changedInPass = true;
+    }
+
+    if (!changedInPass) {
+      break;
+    }
+  }
 
   return nextLeaves;
 }
@@ -433,7 +453,7 @@ export const normalizeState = (state) => ({
 
 export const updateCardinalValue = (state, cardinalId, delta) => ({
   ...state,
-  baseVariables: nudgeLeaves(state.baseVariables, cardinalId, delta),
+  baseVariables: adjustCardinalLeaves(state.baseVariables, cardinalId, delta),
   updatedAt: new Date().toISOString(),
 });
 
