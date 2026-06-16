@@ -1,0 +1,27 @@
+:root {
+  color-scheme: dark;
+  --bg: #09111f;
+  --bg-alt: #10192c;
+  --surface: rgba(15, 23, 42, 0.84);
+  --surface-strong: #111827;
+  --surface-soft: rgba(148, 163, 184, 0.08);
+  --border: rgba(148, 163, 184, 0.18);
+  --border-strong: rgba(248, 250, 252, 0.16);
+  --text: #e5eef8;
+  --muted: #9fb0c7;
+  --accent: #f59e0b;
+  --accent-2: #10b981;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --info: #38bdf8;
+  --radius-xl: 28px;
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 30px 80px rgba(2, 6, 23, 0.55);
+  --shadow-soft: 0 18px 40px rgba(2, 6, 23, 0.36);
+  --font-ui: "Segoe UI Variable", "Aptos", "Trebuchet MS", sans-serif;
+  --font-display: "Segoe UI Variable", "Aptos", "Trebuchet MS", sans-serif;
+  --container: 1240px;
+  --transition: 180ms ease;
+}

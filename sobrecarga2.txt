@@ -14,7 +14,7 @@ Back-end: Firebase
 		- São valores obtidos a partir da média de valores das folhas;
 		- Também é possível incrementar o valores cardinais (o que influencia de maneira natural nas folhas, ou seja, se diminuir o valor de uma variável cardinal, é repassado por média a diferença para as demais variáveis folhas, o teto do valor inteiro).
 
-	1.3 A interface falha pro gráficos:
+	1.3 A interface pro gráficos:
 		- Gráficos de radar (spider chart) mostram parâmetros como [identidade, saúde mental, saúde física, família, profissional], ou seja, as variáveis cardinais, para detalhes bons que estão incrementados;
 		- O gráfico é acompanhado de uma representação gráfica do sentimento (um emoji por exemplo). E ao iniciar o app, mostrar claramente que esse foi o ultimo estado de espirito, e se não estiver o mesmo, deve se solicitar que o usuário decremente um dos valores das variáveis cardinais, para representar que aquele âmbito o deixou chateado.
 		- As variáveis cardinais são as reais controladoras dos emoji de estado de espirito.

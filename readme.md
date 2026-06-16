@@ -1,293 +1,328 @@
 # Sobrecarga
 
-Aplicação web voltada para organização psicológica e acompanhamento pessoal durante períodos de sobrecarga emocional, profissional ou familiar.
+Sobrecarga e um app PWA para organizacao psicologica e acompanhamento pessoal em periodos de sobrecarga emocional, profissional ou familiar.
 
-O objetivo do projeto não é aumentar produtividade ou gerenciar tarefas.
-
-O objetivo é fornecer clareza mental através da revisão periódica de áreas importantes da vida.
-
----
-
-# Filosofia
-
-A vida é composta por áreas principais (troncos) e elementos específicos (folhas).
-
-Ao longo do tempo, o usuário revisa esses elementos, ajustando sua percepção sobre cada aspecto da própria vida.
-
-O sistema incentiva reflexão, consciência e pequenos passos concretos.
+O objetivo nao e produtividade e nem gestao de tarefas.
+O objetivo e dar clareza para o usuario revisar como esta, o que mudou e qual passo concreto merece atencao.
 
 ---
 
-# Tecnologias
+## O que ja esta implementado
 
-## Front-end
+### Tela 1: Login
 
-* HTML
-* CSS
-* JavaScript
-* PWA
+- Login com e-mail e senha.
+- Integracao com Firebase Authentication.
+- Tela responsiva com estado de carregamento e erro.
 
-## Backend
+### Tela 2: Menu principal
 
-* Firebase
+O menu principal ja renderiza 11 cards:
 
-## Banco de Dados
+1. Resumo simples a esquerda e radar chart a direita.
+2. Variaveis cardinais com botoes `-` e `+` e valor central entre `49` e `99`.
+3. Card da variavel base ligada a cardinal `Identidade`.
+4. Card da variavel base ligada a cardinal `Saude Mental`.
+5. Card da variavel base ligada a cardinal `Saude Fisica`.
+6. Card da variavel base ligada a cardinal `Familia`.
+7. Card da variavel base ligada a cardinal `Profissional`.
+8. Pergunta semanal com escala de `-3` a `+3`.
+9. Pergunta do proximo passo concreto com modal de busca das folhas.
+10. Card oculto com botao `...` para mostrar folhas alteradas e historico de valores.
+11. Grafico com o progresso medio das variaveis cardinais.
 
-* Firestore
+### PWA
 
-## Hospedagem
+- `manifest.json`
+- `sw.js`
+- icones SVG
+- registro automatico do service worker no navegador
 
-* GitHub Pages
+### Persistencia local
 
----
+- O estado da sessao e salvo por usuario no `localStorage`.
+- O app lembra:
+  - valores das cardinais
+  - valores das folhas
+  - pergunta semanal
+  - proximo passo concreto
+  - abertura do card oculto
 
-# Estrutura Conceitual
+### Persistencia remota
 
-## Variáveis Cardinais
-
-Representam grandes áreas da vida.
-
-Exemplos:
-
-* Identidade
-* Saúde Mental
-* Saúde Física
-* Família
-* Profissional
-
-As variáveis cardinais são calculadas através das variáveis base associadas.
-
----
-
-## Variáveis Base
-
-Representam aspectos específicos da vida.
-
-Exemplos:
-
-* Sono
-* Exercícios
-* Tempo com o filho
-* Finanças
-
-Características:
-
-* Valor entre 49 e 99.
-* Prazo associado.
-* Observações.
-* Folhas irmãs.
-* Arquivamento.
+- O envio para o Firestore agora e manual.
+- O botao `Salvar` sobe o estado atual para o Firestore.
+- O `localStorage` e salvo automaticamente a cada alteracao.
+- O primeiro conjunto de cardinais e folhas aparece localmente como seed do prototipo.
 
 ---
 
-# Escala
+## Dados ja cadastrados no prototipo
 
-| Valor | Significado         |
-| ----- | ------------------- |
-| 49    | Estado crítico      |
-| 50-59 | Grande insatisfação |
-| 60-69 | Necessita atenção   |
-| 70-79 | Aceitável           |
-| 80-89 | Saudável            |
-| 90-99 | Excelente           |
+### Variaveis cardinais
 
----
+O prototipo ja vem com 5 cardinais:
 
-# Horizontes Temporais
+- Identidade
+- Saude Mental
+- Saude Fisica
+- Familia
+- Profissional
 
-Toda variável base possui um horizonte temporal.
+### Variaveis base
 
-* 30 dias
-* 90 dias
-* 1 ano
-* 5 anos
+O prototipo ja vem com 14 folhas de exemplo, entre elas:
 
-O horizonte representa o contexto original da criação da variável.
+- Sono consistente
+- Meditacao curta
+- Sessao de terapia
+- Caminhada diaria
+- Hidratacao
+- Alimentacao simples
+- Tempo com meu filho
+- Conversa de alinhamento
+- Rotina da casa
+- Foco profundo
+- Priorizacao da semana
+- Aprendizado direcionado
+- Autoconhecimento
+- Valores pessoais
 
-Não gera alertas ou punições.
+### Regras das folhas
 
-Seu objetivo é apenas preservar contexto histórico.
-
----
-
-# Fluxo Semanal
-
-1. Revisar estado emocional.
-2. Revisar passo concreto da semana anterior.
-3. Ler conselho da vez.
-4. Atualizar variáveis.
-5. Definir próximo passo concreto.
-6. Salvar progresso.
-
----
-
-# Conselho da Vez
-
-O sistema identifica variáveis pouco revisitadas.
-
-Existem dois tipos:
-
-## Conselho de Atenção
-
-Variável esquecida com valor baixo.
-
-Objetivo:
-
-Trazer novamente o assunto para reflexão.
+- Valor entre `49` e `99`
+- Prazo ou horizonte temporal
+- Observacao
+- Relacao com cardinal
+- Progresso calculado no card 10 e card 11
+- Revisao semanal com status bar de `-3` a `+3`
 
 ---
 
-## Conselho de Reconhecimento
+## Como iniciar o app
 
-Variável esquecida com valor alto.
+Use o servidor local incluido no projeto:
 
-Objetivo:
+```bash
+npm run dev
+```
 
-Reconhecer conquistas e estabilidade.
+Depois abra:
+
+```text
+http://127.0.0.1:4173
+```
+
+Importante:
+
+- Abra o app pela raiz do repositorio, usando `index.html`.
+- Nao use mais `src/index.html`, porque ele foi removido.
+- Os arquivos do PWA tambem vivem na raiz:
+  - `manifest.json`
+  - `sw.js`
 
 ---
 
-# Estrutura de Pastas
+## Provisionar usuario de acesso
+
+Nao existe tela de criar conta. O usuario pode ser criado pelo backend usando o script de provisionamento.
+
+### Script
+
+```bash
+npm run provision:user
+```
+
+### Variaveis necessarias
+
+- `FIREBASE_EMAIL`
+- `FIREBASE_PASSWORD`
+- opcional: `FIREBASE_DISPLAY_NAME`
+
+### Exemplo
+
+```powershell
+$env:FIREBASE_EMAIL="mail@mail.com"
+$env:FIREBASE_PASSWORD="123456789"
+npm run provision:user
+```
+
+### Importante
+
+Se o Firebase retornar `CONFIGURATION_NOT_FOUND`, normalmente significa que o provedor `Email/Password` ainda nao esta habilitado no projeto.
+Nesse caso:
+
+1. Abra o Firebase Console.
+2. Va em `Authentication`.
+3. Ative o provedor `Email/Password`.
+4. Salve.
+5. Rode o script novamente.
+
+---
+
+## Guia rapido
+
+### 1. Rodar localmente
+
+1. Abra o terminal na raiz do projeto.
+2. Execute `npm run dev`.
+3. Acesse `http://127.0.0.1:4173`.
+
+### 2. Entrar no app
+
+1. Use um usuario com Authentication por e-mail e senha habilitado no Firebase.
+2. Faca login na tela inicial.
+3. O menu principal carrega com os dados de prototipo ja definidos.
+
+### 3. Validar o prototipo
+
+1. Ajuste uma cardinal no card 2.
+2. Abra a pergunta semanal no card 8.
+3. Use o card 9 para procurar uma folha.
+4. Abra o card 10 pelo botao `...`.
+5. Observe o card 11 com o grafico de progresso.
+
+### 4. Subir para o Firestore
+
+1. Faça as alterações desejadas.
+2. Confirme que o estado foi salvo localmente.
+3. Clique em `Salvar` no topo do menu principal.
+4. Aguarde a confirmacao de envio para o Firestore.
+
+---
+
+## Estrutura atual
 
 ```text
 sobrecarga/
-
-├── public/
-│   ├── icons/
-│   ├── manifest.json
-│   └── sw.js
-│
+├── index.html
+├── manifest.json
+├── sw.js
+├── package.json
+├── scripts/
+│   └── dev-server.mjs
+├── icons/
+│   ├── icon-192.svg
+│   └── icon-512.svg
 ├── src/
-│
-│   ├── assets/
-│   │   ├── images/
-│   │   └── emojis/
-│   │
 │   ├── css/
 │   │   ├── variables.css
 │   │   ├── layout.css
 │   │   ├── components.css
 │   │   └── app.css
-│   │
-│   ├── js/
-│   │
-│   │   ├── app.js
-│   │   ├── router.js
-│   │   │
-│   │   ├── firebase/
-│   │   │   └── firebase.js
-│   │   │
-│   │   ├── models/
-│   │   │   ├── CardinalVariable.js
-│   │   │   ├── BaseVariable.js
-│   │   │   └── WeeklyReview.js
-│   │   │
-│   │   ├── services/
-│   │   │   ├── moodService.js
-│   │   │   ├── adviceService.js
-│   │   │   ├── reviewService.js
-│   │   │   └── variableService.js
-│   │   │
-│   │   ├── ui/
-│   │   │   ├── dashboard.js
-│   │   │   ├── radarChart.js
-│   │   │   ├── moodPanel.js
-│   │   │   └── adviceModal.js
-│   │   │
-│   │   └── utils/
-│   │       ├── calculations.js
-│   │       └── dates.js
-│
-│   └── index.html
-│
-├── .env.example
-├── .gitignore
-├── README.md
-└── firebase.json
+│   └── js/
+│       ├── app.js
+│       ├── firebase/
+│       │   └── firebase.js
+│       ├── models/
+│       │   ├── BaseVariable.js
+│       │   ├── CardinalVariable.js
+│       │   └── WeeklyReview.js
+│       ├── services/
+│       │   ├── adviceService.js
+│       │   ├── moodService.js
+│       │   ├── reviewService.js
+│       │   └── variableService.js
+│       ├── ui/
+│       │   ├── adviceModal.js
+│       │   ├── dashboard.js
+│       │   ├── moodPanel.js
+│       │   └── radarChart.js
+│       └── utils/
+│           ├── calculations.js
+│           └── dates.js
+├── firebase.json
+└── readme.md
 ```
 
 ---
 
-# Configuração do Ambiente
+## Configuracao do Firebase
 
-Criar um arquivo:
+Hoje a configuracao do Firebase esta injetada diretamente em `index.html` por meio de `window.__FIREBASE_CONFIG__`.
 
-```text
-.env
-```
+Isso funciona para desenvolvimento, mas o ideal e mover essa configuracao para um mecanismo de ambiente antes de publicar em producao.
 
-Baseado em:
+### O que precisa existir no Firebase
 
-```text
-.env.example
-```
+- Authentication com login por e-mail e senha habilitado
+- Projeto Firebase ativo
+- Usuario cadastrado para teste
 
-Exemplo:
+### Atencao
 
-```env
-FIREBASE_API_KEY=xxxxxxxxxxxxxxxx
-FIREBASE_AUTH_DOMAIN=xxxxxxxxxxxxxxxx
-FIREBASE_PROJECT_ID=xxxxxxxxxxxxxxxx
-FIREBASE_STORAGE_BUCKET=xxxxxxxxxxxxxxxx
-FIREBASE_MESSAGING_SENDER_ID=xxxxxxxxxxxxxxxx
-FIREBASE_APP_ID=xxxxxxxxxxxxxxxx
-```
+Se o login falhar, normalmente o problema e um destes:
+
+- e-mail ou senha invalidos
+- Authentication nao habilitado
+- usuario ainda nao criado no Firebase Console
 
 ---
 
-# .env.example
+## O que ainda falta fazer
 
-```env
-FIREBASE_API_KEY=
-FIREBASE_AUTH_DOMAIN=
-FIREBASE_PROJECT_ID=
-FIREBASE_STORAGE_BUCKET=
-FIREBASE_MESSAGING_SENDER_ID=
-FIREBASE_APP_ID=
-```
+### Prioridade alta
 
----
+- Ligar as cardinais e folhas ao Firestore.
+- Substituir o estado em `localStorage` por dados reais do banco.
+- Criar cadastro e edicao real de folhas.
+- Criar cadastro e edicao real de cardinais.
 
-# Git Ignore
+### Prioridade media
 
-```gitignore
-.env
+- Salvar historico temporal.
+- Registrar progresso por sessao.
+- Persistir a pergunta semanal e o proximo passo concreto no Firestore.
+- Melhorar a busca do modal de folhas com filtros mais uteis.
 
-node_modules/
+### Prioridade futura
 
-dist/
-
-firebase-debug.log
-
-.DS_Store
-```
+- Multiplos perfis.
+- Backup e exportacao.
+- Historico grafico completo.
+- Conselhos automaticos da vez.
 
 ---
 
-# Roadmap MVP
+## Observacoes importantes
 
-## MVP 1
+- O app ja esta com foco em mobile e desktop.
+- O card 10 fica oculto e e aberto pelo botao `...`.
+- O radar chart e desenhado em SVG, sem dependencia externa.
+- O projeto esta estruturado como PWA, mas ainda esta no estagio de prototipo funcional.
 
-* Cadastro de variáveis cardinais.
-* Cadastro de variáveis base.
-* Radar Chart.
-* Estado emocional.
-* Conselho da vez.
-* Revisão semanal.
-* Próximo passo concreto.
+---
 
-## MVP 2
+## Checklist para continuar o projeto
 
-* Histórico temporal.
-* Evolução gráfica.
-* Estatísticas pessoais.
+### Antes de mexer em dados reais
 
-## MVP 3
+- Confirmar que o login do Firebase esta funcionando.
+- Criar ao menos um usuario de teste.
+- Validar se o `localStorage` atual atende o fluxo de prototipo.
 
-* Exportação de dados.
-* Backup local.
-* Múltiplos perfis.
-* IA para geração de reflexões.
+### Antes de conectar o Firestore
 
+- Definir o formato das colecoes.
+- Definir como ficam cardinais, folhas e revisoes semanais.
+- Decidir se a alteracao em cardinais vai refletir automaticamente nas folhas.
+
+### Antes de publicar
+
+- Confirmar que o `index.html` da raiz e o ponto de entrada.
+- Confirmar que `manifest.json` e `sw.js` tambem estao na raiz.
+- Validar se o deploy escolhido vai servir arquivos staticos a partir da raiz.
+
+---
+
+## Comando util
+
+```bash
+npm run dev
 ```
-```
+
+Se voce quiser, o proximo passo pode ser:
+
+1. conectar o Firestore de verdade,
+2. criar telas de cadastro das folhas,
+3. ou organizar o app para deploy no GitHub Pages ou Firebase Hosting.

@@ -1,0 +1,54 @@
+.auth-card,
+.auth-visual__card,
+.overview-panel,
+.dashboard-card {
+  animation: rise-in 360ms ease both;
+}
+
+.overview-panel--chart {
+  display: grid;
+  place-items: center;
+}
+
+.overview-panel--chart .radar-chart {
+  width: min(100%, 440px);
+}
+
+.auth-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-card::after {
+  content: "";
+  position: absolute;
+  inset: -40% auto auto -20%;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.16), transparent 70%);
+  pointer-events: none;
+}
+
+.topbar h1 {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+}
+
+.card h3 + p {
+  margin-top: 8px;
+}
+
+.form-message--error {
+  margin-top: -4px;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
