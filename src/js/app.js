@@ -5,6 +5,7 @@ import {
   mergeStateWithSeed,
   updateCardinalValue,
   updateLeafValue,
+  updateLeafHorizon,
   setWeeklyReviewScore,
   setWeeklyReviewNote,
   selectNextStep,
@@ -22,7 +23,7 @@ import {
 import { createDashboardMarkup } from "./ui/dashboard.js";
 import { getMoodFromAverageValue } from "./services/moodService.js";
 import { average } from "./utils/calculations.js";
-import { formatDateTime } from "./utils/dates.js";
+import { formatDateTime, horizonIndexToValue } from "./utils/dates.js";
 
 const STORAGE_PREFIX = "sobrecarga-state:";
 const app = document.getElementById("app");
@@ -226,6 +227,7 @@ const bindDashboardEvents = () => {
   if (dashboardEventsBound) return;
   app.addEventListener("click", handleDashboardClick);
   app.addEventListener("input", handleDashboardInput);
+  app.addEventListener("pointerup", handleDashboardPointerUp);
   app.addEventListener("change", handleDashboardChange);
   app.addEventListener("keydown", handleDashboardKeydown);
   dashboardEventsBound = true;
@@ -235,6 +237,7 @@ const unbindDashboardEvents = () => {
   if (!dashboardEventsBound) return;
   app.removeEventListener("click", handleDashboardClick);
   app.removeEventListener("input", handleDashboardInput);
+  app.removeEventListener("pointerup", handleDashboardPointerUp);
   app.removeEventListener("change", handleDashboardChange);
   app.removeEventListener("keydown", handleDashboardKeydown);
   dashboardEventsBound = false;
@@ -327,6 +330,26 @@ function handleDashboardInput(event) {
   }
 }
 
+function commitLeafHorizon(field) {
+  if (field.dataset.field !== "leaf-horizon") return;
+
+  const leafId = field.dataset.leafId;
+  const horizonDays = horizonIndexToValue(field.value);
+  const currentLeaf = state.localState.baseVariables.find((item) => item.id === leafId);
+
+  if (!currentLeaf || Number(currentLeaf.horizonDays) === horizonDays) {
+    return;
+  }
+
+  setLocalState((current) => updateLeafHorizon(current, leafId, horizonDays));
+}
+
+function handleDashboardPointerUp(event) {
+  const field = event.target.closest("[data-field]");
+  if (!field) return;
+  commitLeafHorizon(field);
+}
+
 function handleDashboardChange(event) {
   const field = event.target.closest("[data-field]");
   if (!field) return;
@@ -346,6 +369,8 @@ function handleDashboardChange(event) {
     }));
     return;
   }
+
+  commitLeafHorizon(field);
 }
 
 function handleDashboardKeydown(event) {

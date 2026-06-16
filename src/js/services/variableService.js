@@ -4,7 +4,7 @@ import { addDays } from "../utils/dates.js";
 import { average, clamp } from "../utils/calculations.js";
 
 const now = new Date();
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 const cardinalDefinitions = [
   { id: "identidade", name: "Identidade", color: "#f59e0b", icon: "◌" },
@@ -425,6 +425,9 @@ export const normalizeState = (state) => ({
     startValue: clamp(leaf.startValue, 49, 99),
     targetValue: clamp(leaf.targetValue, 49, 99),
     currentValue: clamp(leaf.currentValue, 49, 99),
+    horizonDays: [7, 30, 90, 180, 365, 1825].includes(Number(leaf.horizonDays))
+      ? Number(leaf.horizonDays)
+      : 30,
   })),
 });
 
@@ -439,6 +442,16 @@ export const updateLeafValue = (state, leafId, delta) => ({
   baseVariables: state.baseVariables.map((leaf) =>
     leaf.id === leafId
       ? { ...leaf, currentValue: clamp(leaf.currentValue + delta, 49, 99) }
+      : leaf
+  ),
+  updatedAt: new Date().toISOString(),
+});
+
+export const updateLeafHorizon = (state, leafId, horizonDays) => ({
+  ...state,
+  baseVariables: state.baseVariables.map((leaf) =>
+    leaf.id === leafId
+      ? { ...leaf, horizonDays: Number(horizonDays) }
       : leaf
   ),
   updatedAt: new Date().toISOString(),

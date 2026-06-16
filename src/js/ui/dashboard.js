@@ -2,7 +2,7 @@ import { renderRadarChart } from "./radarChart.js";
 import { renderStatusBar, statusLabels } from "./moodPanel.js";
 import { renderLeafModal } from "./adviceModal.js";
 import { average, progressBetween, formatPercent } from "../utils/calculations.js";
-import { formatDateTime, horizonLabel } from "../utils/dates.js";
+import { formatDateTime, horizonLabel, horizonOptions, horizonValueToIndex } from "../utils/dates.js";
 import { findLeaves } from "../services/adviceService.js";
 import { buildReviewSummary } from "../services/reviewService.js";
 
@@ -56,7 +56,7 @@ export const createDashboardMarkup = (state) => {
     state.baseVariables
       .filter((leaf) => leaf.cardinalId === cardinalId)
       .forEach((leaf) => {
-        const nodeName = leaf.nodeName || "Sem nó";
+        const nodeName = leaf.nodeName || "Sem grupo";
         if (!nodes.has(nodeName)) {
           nodes.set(nodeName, []);
         }
@@ -218,19 +218,25 @@ export const createDashboardMarkup = (state) => {
                                 (leaf) => `
                                   <div class="leaf-item ${leafToneClass(leaf.currentValue)}">
                                     <div class="leaf-item__heading">
-                                      <div>
-                                        <strong>${leaf.name}</strong>
-                                        <span>${leaf.currentValue}</span>
-                                      </div>
-                                      <div class="leaf-item__actions">
-                                        <button type="button" class="stepper-button stepper-button--danger stepper-button--tiny" data-action="leaf-delta" data-leaf-id="${leaf.id}" data-delta="-1">−</button>
-                                        <button type="button" class="stepper-button stepper-button--success stepper-button--tiny" data-action="leaf-delta" data-leaf-id="${leaf.id}" data-delta="1">+</button>
-                                      </div>
+                                      <strong>${leaf.name}</strong>
                                     </div>
-                                    <div class="leaf-item__meta">
-                                      <span>Início ${leaf.startValue}</span>
-                                      <span>Meta ${leaf.targetValue}</span>
-                                      <span>${leaf.horizonLabel}</span>
+                                    <div class="leaf-value-box">
+                                      <button type="button" class="stepper-button stepper-button--danger stepper-button--tiny" data-action="leaf-delta" data-leaf-id="${leaf.id}" data-delta="-1">−</button>
+                                      <div class="leaf-value-box__value">${leaf.currentValue}</div>
+                                      <button type="button" class="stepper-button stepper-button--success stepper-button--tiny" data-action="leaf-delta" data-leaf-id="${leaf.id}" data-delta="1">+</button>
+                                    </div>
+                                    <div class="leaf-horizon">
+                                      <input
+                                        type="range"
+                                        min="0"
+                                        max="${horizonOptions.length - 1}"
+                                        step="1"
+                                        value="${horizonValueToIndex(leaf.horizonDays)}"
+                                        data-field="leaf-horizon"
+                                        data-leaf-id="${leaf.id}"
+                                        aria-label="Selecionar prazo de ${leaf.name}"
+                                      />
+                                      <span class="leaf-horizon__current">${horizonLabel(leaf.horizonDays)}</span>
                                     </div>
                                   </div>
                                 `

@@ -331,9 +331,10 @@ h3 {
 }
 
 .stepper-button--tiny {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  font-size: 0.95rem;
 }
 
 .stepper-button--danger {
@@ -397,21 +398,54 @@ h3 {
 }
 
 .leaf-item__heading {
-  align-items: center;
+  width: 100%;
+  align-items: flex-start;
 }
 
-.leaf-item__heading > div {
+.leaf-value-box {
+  width: fit-content;
+  max-width: 100%;
+  justify-self: start;
+  margin-right: auto;
   display: grid;
-  gap: 4px;
+  grid-template-columns: auto minmax(70px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.leaf-item__actions {
-  display: inline-flex;
-  gap: 8px;
+.leaf-value-box__value {
+  text-align: center;
+  min-width: 42px;
+  font-size: 1.15rem;
+  font-weight: 900;
 }
 
 .leaf-item__heading span {
-  font-weight: 800;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.leaf-horizon {
+  display: grid;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.leaf-horizon__current {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.leaf-horizon input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 .leaf-item__meta,
