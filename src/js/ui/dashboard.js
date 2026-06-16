@@ -73,7 +73,7 @@ export const createDashboardMarkup = (state) => {
 
   return `
     <div class="shell">
-      <header class="topbar">
+      <header class="topbar" data-dashboard-section="topbar">
         <div class="brand-mark">
           <span class="brand-mark__badge">S</span>
           <div>
@@ -83,12 +83,12 @@ export const createDashboardMarkup = (state) => {
         </div>
         <div class="topbar__actions">
           <div class="status-pill">
-            <span>${moodEmoji}</span>
-            <span>${summary.mood.label}</span>
+            <span data-summary="mood-emoji">${moodEmoji}</span>
+            <span data-summary="mood-label">${summary.mood.label}</span>
           </div>
           <div class="status-pill status-pill--sync">
             <span>${state.ui?.dirty ? "•" : "✓"}</span>
-            <span>${state.ui?.syncMessage || "Salvo localmente"}</span>
+            <span data-summary="sync-message">${state.ui?.syncMessage || "Salvo localmente"}</span>
           </div>
           <button
             type="button"
@@ -102,7 +102,7 @@ export const createDashboardMarkup = (state) => {
         </div>
       </header>
 
-      <section class="hero card card--hero">
+      <section class="hero card card--hero" data-dashboard-section="hero">
         <div class="hero__text">
           <p class="eyebrow">Sessão atual</p>
           <h2>Clareza emocional em duas telas, com as 11 cards já prontas para uso.</h2>
@@ -112,19 +112,19 @@ export const createDashboardMarkup = (state) => {
           <div class="hero__stats">
             <div class="stat">
               <span class="stat__label">Cardinais</span>
-              <strong>${formatPercent(avgCardinal)}</strong>
+              <strong data-summary="hero-average-cardinal">${formatPercent(avgCardinal)}</strong>
             </div>
             <div class="stat">
               <span class="stat__label">Folhas alteradas</span>
-              <strong>${changedLeaves.length}</strong>
+              <strong data-summary="hero-changed-leaves">${changedLeaves.length}</strong>
             </div>
             <div class="stat">
               <span class="stat__label">Atualizado em</span>
-              <strong>${formatDateTime(state.updatedAt)}</strong>
+              <strong data-summary="hero-updated-at">${formatDateTime(state.updatedAt)}</strong>
             </div>
             <div class="stat">
               <span class="stat__label">Sincronização</span>
-              <strong>${state.ui?.lastSavedAt ? formatDateTime(state.ui.lastSavedAt) : "Ainda não enviado"}</strong>
+              <strong data-summary="hero-last-saved-at">${state.ui?.lastSavedAt ? formatDateTime(state.ui.lastSavedAt) : "Ainda não enviado"}</strong>
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@ export const createDashboardMarkup = (state) => {
       </section>
 
       <section class="dashboard-grid">
-        <article class="card dashboard-card dashboard-card--wide">
+        <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="overview">
           <header class="card__header">
             <div>
               <p class="eyebrow">Card 1</p>
@@ -146,19 +146,19 @@ export const createDashboardMarkup = (state) => {
             <div class="overview-panel">
               <p class="overview-panel__title">Resumo</p>
               <ul class="summary-list">
-                <li><span>Estado emocional</span><strong>${summary.mood.label}</strong></li>
-                <li><span>Média das cardinais</span><strong>${summary.averageCardinal.toFixed(1)}</strong></li>
-                <li><span>Progresso médio das folhas alteradas</span><strong>${summary.progressAverage.toFixed(1)}%</strong></li>
-                <li><span>Próximo passo</span><strong>${currentNextLeaf?.name || "Definir"}</strong></li>
+                <li><span>Estado emocional</span><strong data-summary="overview-mood">${summary.mood.label}</strong></li>
+                <li><span>Média das cardinais</span><strong data-summary="overview-average-cardinal">${summary.averageCardinal.toFixed(1)}</strong></li>
+                <li><span>Progresso médio das folhas alteradas</span><strong data-summary="overview-progress-average">${summary.progressAverage.toFixed(1)}%</strong></li>
+                <li><span>Próximo passo</span><strong data-summary="overview-next-step">${currentNextLeaf?.name || "Definir"}</strong></li>
               </ul>
             </div>
-            <div class="overview-panel overview-panel--chart">
+            <div class="overview-panel overview-panel--chart" data-dashboard-section="overview-chart">
               ${renderRadarChart(radarItems)}
             </div>
           </div>
         </article>
 
-        <article class="card dashboard-card">
+        <article class="card dashboard-card" data-dashboard-section="cardinals">
           <header class="card__header">
             <div>
               <p class="eyebrow">Card 2</p>
@@ -169,7 +169,7 @@ export const createDashboardMarkup = (state) => {
             ${state.cardinals
               .map(
                 (cardinal) => `
-                  <div class="cardinal-row" style="--card-color:${cardinal.color}">
+                  <div class="cardinal-row" data-cardinal-id="${cardinal.id}" style="--card-color:${cardinal.color}">
                     <div class="cardinal-row__meta">
                       <span class="cardinal-row__icon">${cardinal.icon}</span>
                       <div>
@@ -179,7 +179,7 @@ export const createDashboardMarkup = (state) => {
                     </div>
                     <div class="cardinal-stepper">
                       <button type="button" class="stepper-button stepper-button--danger" data-action="cardinal-delta" data-cardinal-id="${cardinal.id}" data-delta="-1">−</button>
-                      <div class="stepper-value">${cardinal.value}</div>
+                      <div class="stepper-value" data-cardinal-value="${cardinal.id}">${cardinal.value}</div>
                       <button type="button" class="stepper-button stepper-button--success" data-action="cardinal-delta" data-cardinal-id="${cardinal.id}" data-delta="1">+</button>
                     </div>
                   </div>
@@ -193,7 +193,7 @@ export const createDashboardMarkup = (state) => {
           .map((cardinal, index) => {
             const nodeGroups = buildNodeGroups(cardinal.id);
             return `
-              <article class="card dashboard-card">
+              <article class="card dashboard-card" data-dashboard-section="cardinal-panel" data-cardinal-id="${cardinal.id}">
                 <header class="card__header">
                   <div>
                     <p class="eyebrow">Card ${index + 3}</p>
@@ -216,13 +216,13 @@ export const createDashboardMarkup = (state) => {
                             ${node.leaves
                               .map(
                                 (leaf) => `
-                                  <div class="leaf-item ${leafToneClass(leaf.currentValue)}">
+                                  <div class="leaf-item ${leafToneClass(leaf.currentValue)}" data-leaf-id="${leaf.id}">
                                     <div class="leaf-item__heading">
                                       <strong>${leaf.name}</strong>
                                     </div>
                                     <div class="leaf-value-box">
                                       <button type="button" class="stepper-button stepper-button--danger stepper-button--tiny" data-action="leaf-delta" data-leaf-id="${leaf.id}" data-delta="-1">−</button>
-                                      <div class="leaf-value-box__value">${leaf.currentValue}</div>
+                                      <div class="leaf-value-box__value" data-leaf-value="${leaf.id}">${leaf.currentValue}</div>
                                       <button type="button" class="stepper-button stepper-button--success stepper-button--tiny" data-action="leaf-delta" data-leaf-id="${leaf.id}" data-delta="1">+</button>
                                     </div>
                                     <div class="leaf-horizon">
@@ -234,9 +234,10 @@ export const createDashboardMarkup = (state) => {
                                         value="${horizonValueToIndex(leaf.horizonDays)}"
                                         data-field="leaf-horizon"
                                         data-leaf-id="${leaf.id}"
+                                        data-leaf-horizon-input="${leaf.id}"
                                         aria-label="Selecionar prazo de ${leaf.name}"
                                       />
-                                      <span class="leaf-horizon__current">${horizonLabel(leaf.horizonDays)}</span>
+                                      <span class="leaf-horizon__current" data-leaf-horizon-label="${leaf.id}">${horizonLabel(leaf.horizonDays)}</span>
                                     </div>
                                   </div>
                                 `
@@ -304,7 +305,7 @@ export const createDashboardMarkup = (state) => {
           </div>
 
           <div class="hidden-panels ${state.showArchive ? "is-open" : ""}">
-            <article class="card dashboard-card dashboard-card--wide">
+            <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="archive">
               <header class="card__header">
                 <div>
                   <p class="eyebrow">Card 10</p>
@@ -338,7 +339,7 @@ export const createDashboardMarkup = (state) => {
               </div>
             </article>
 
-            <article class="card dashboard-card dashboard-card--wide">
+            <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="progress">
               <header class="card__header">
                 <div>
                   <p class="eyebrow">Card 11</p>

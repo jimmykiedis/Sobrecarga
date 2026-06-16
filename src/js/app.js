@@ -22,8 +22,9 @@ import {
 } from "./firebase/firebase.js";
 import { createDashboardMarkup } from "./ui/dashboard.js";
 import { getMoodFromAverageValue } from "./services/moodService.js";
-import { average } from "./utils/calculations.js";
-import { formatDateTime, horizonIndexToValue } from "./utils/dates.js";
+import { average, formatPercent } from "./utils/calculations.js";
+import { formatDateTime, horizonIndexToValue, horizonLabel, horizonValueToIndex } from "./utils/dates.js";
+import { buildReviewSummary } from "./services/reviewService.js";
 
 const STORAGE_PREFIX = "sobrecarga-state:";
 const app = document.getElementById("app");
@@ -143,6 +144,122 @@ const renderDashboard = () => {
   });
 };
 
+const buildDashboardMarkup = () =>
+  createDashboardMarkup({
+    ...state.localState,
+    ui: {
+      dirty: state.dirty,
+      syncMessage: state.syncMessage,
+      saving: state.saving,
+      lastSavedAt: state.lastSavedAt,
+    },
+  });
+
+const patchDashboardSections = (selectors) => {
+  if (!state.user || state.loading) return;
+
+  const template = document.createElement("template");
+  template.innerHTML = buildDashboardMarkup();
+
+  selectors.forEach((selector) => {
+    const currentSection = app.querySelector(selector);
+    const nextSection = template.content.querySelector(selector);
+    if (currentSection && nextSection) {
+      currentSection.replaceWith(nextSection);
+    }
+  });
+
+  requestAnimationFrame(() => {
+    const chart = app.querySelector(".radar-chart");
+    if (chart) {
+      chart.classList.add("is-ready");
+    }
+  });
+};
+
+const refreshSummaryBindings = () => {
+  const summary = buildReviewSummary(state.localState);
+  const currentNextLeaf =
+    state.localState.baseVariables.find((leaf) => leaf.id === state.localState.nextStep.leafId) ||
+    state.localState.baseVariables[0];
+
+  const setText = (selector, value) => {
+    const element = app.querySelector(selector);
+    if (element) {
+      element.textContent = value;
+    }
+  };
+
+  const moodEmoji = summary.mood.emoji;
+  setText('[data-summary="mood-emoji"]', moodEmoji);
+  setText('[data-summary="mood-label"]', summary.mood.label);
+  setText('[data-summary="sync-message"]', state.syncMessage || "Salvo localmente");
+  setText('[data-summary="hero-average-cardinal"]', formatPercent(summary.averageCardinal));
+  setText('[data-summary="hero-changed-leaves"]', String(summary.changedLeaves));
+  setText('[data-summary="hero-updated-at"]', formatDateTime(state.localState.updatedAt));
+  setText(
+    '[data-summary="hero-last-saved-at"]',
+    state.lastSavedAt ? formatDateTime(state.lastSavedAt) : "Ainda não enviado"
+  );
+  setText('[data-summary="overview-mood"]', summary.mood.label);
+  setText('[data-summary="overview-average-cardinal"]', summary.averageCardinal.toFixed(1));
+  setText('[data-summary="overview-progress-average"]', `${summary.progressAverage.toFixed(1)}%`);
+  setText('[data-summary="overview-next-step"]', currentNextLeaf?.name || "Definir");
+};
+
+const refreshRadarChart = () => {
+  const chart = app.querySelector('[data-dashboard-section="overview-chart"]');
+  if (!chart) return;
+  chart.innerHTML = createDashboardMarkup({
+    ...state.localState,
+    ui: {
+      dirty: state.dirty,
+      syncMessage: state.syncMessage,
+      saving: state.saving,
+      lastSavedAt: state.lastSavedAt,
+    },
+  })
+    .match(/<div class="overview-panel overview-panel--chart" data-dashboard-section="overview-chart">([\s\S]*?)<\/div>\s*<\/div>\s*<\/article>/)?.[1] || chart.innerHTML;
+};
+
+const refreshCardinalRow = (cardinalId) => {
+  const cardinal = state.localState.cardinals.find((item) => item.id === cardinalId);
+  const value = app.querySelector(`[data-cardinal-value="${cardinalId}"]`);
+  if (value && cardinal) {
+    value.textContent = String(cardinal.value);
+  }
+};
+
+const refreshLeafItem = (leafId) => {
+  const leaf = state.localState.baseVariables.find((item) => item.id === leafId);
+  const element = app.querySelector(`[data-leaf-id="${leafId}"]`);
+  if (!element || !leaf) return;
+
+  element.classList.remove("tone-excellent", "tone-healthy", "tone-steady", "tone-attention", "tone-critical");
+  element.classList.add(leafToneClass(leaf.currentValue));
+
+  const value = element.querySelector(`[data-leaf-value="${leafId}"]`);
+  if (value) value.textContent = String(leaf.currentValue);
+
+  const horizon = element.querySelector(`[data-leaf-horizon-label="${leafId}"]`);
+  if (horizon) horizon.textContent = horizonLabel(leaf.horizonDays);
+
+  const input = element.querySelector(`[data-leaf-horizon-input="${leafId}"]`);
+  if (input) {
+    input.value = String(horizonValueToIndex(leaf.horizonDays));
+  }
+};
+
+const setLocalStatePartial = (updater, partialSelectors) => {
+  state.localState = normalizeState(updater(cloneState(state.localState)));
+  syncDerivedState();
+  state.dirty = true;
+  state.syncMessage = "AlteraÃ§Ãµes salvas localmente";
+  refreshSummaryBindings();
+  patchDashboardSections(partialSelectors);
+  saveState();
+};
+
 const renderLoading = () => {
   app.innerHTML = `
     <main class="auth-screen">
@@ -243,6 +360,18 @@ const unbindDashboardEvents = () => {
   dashboardEventsBound = false;
 };
 
+const buildCardinalSelectors = (cardinalId) => [
+  `[data-dashboard-section="cardinal-panel"][data-cardinal-id="${cardinalId}"]`,
+  `[data-cardinal-value="${cardinalId}"]`,
+  '[data-dashboard-section="overview-chart"]',
+];
+
+const buildLeafSelectors = (leafId, cardinalId) => [
+  `[data-leaf-id="${leafId}"]`,
+  `[data-cardinal-value="${cardinalId}"]`,
+  '[data-dashboard-section="overview-chart"]',
+];
+
 function handleDashboardClick(event) {
   const target = event.target.closest("[data-action]");
   if (!target) return;
@@ -261,14 +390,16 @@ function handleDashboardClick(event) {
   if (action === "cardinal-delta") {
     const delta = Number(target.dataset.delta);
     const cardinalId = target.dataset.cardinalId;
-    setLocalState((current) => updateCardinalValue(current, cardinalId, delta));
+    setLocalStatePartial((current) => updateCardinalValue(current, cardinalId, delta), buildCardinalSelectors(cardinalId));
     return;
   }
 
   if (action === "leaf-delta") {
     const delta = Number(target.dataset.delta);
     const leafId = target.dataset.leafId;
-    setLocalState((current) => updateLeafValue(current, leafId, delta));
+    const leaf = state.localState.baseVariables.find((item) => item.id === leafId);
+    if (!leaf) return;
+    setLocalStatePartial((current) => updateLeafValue(current, leafId, delta), buildLeafSelectors(leafId, leaf.cardinalId));
     return;
   }
 
@@ -341,7 +472,10 @@ function commitLeafHorizon(field) {
     return;
   }
 
-  setLocalState((current) => updateLeafHorizon(current, leafId, horizonDays));
+  setLocalStatePartial(
+    (current) => updateLeafHorizon(current, leafId, horizonDays),
+    buildLeafSelectors(leafId, currentLeaf.cardinalId)
+  );
 }
 
 function handleDashboardPointerUp(event) {
