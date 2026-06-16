@@ -766,6 +766,13 @@ h3 {
 
 .progress-table-shell--compact {
   max-height: none;
+  overflow: hidden;
+}
+
+.dashboard-card[data-dashboard-section="progress"],
+.dashboard-card[data-dashboard-section="cardinals-summary"] {
+  overflow: hidden;
+  min-width: 0;
 }
 
 .table-note {
@@ -879,6 +886,10 @@ h3 {
 
   .progress-table-shell {
     overflow: visible;
+  }
+
+  .progress-table-shell--compact {
+    overflow: hidden;
   }
 
   .progress-table {

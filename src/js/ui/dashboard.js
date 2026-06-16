@@ -55,7 +55,7 @@ export const createDashboardMarkup = (state) => {
       previousValue: leaf.previousValue ?? leaf.currentValue,
       progress: progressBetween(leaf.startValue, leaf.currentValue, leaf.targetValue),
     }));
-  const recentChangedLeaves = changedLeaves.slice(0, 8);
+  const recentChangedLeaves = changedLeaves.slice(0, 6);
   const remainingChangedLeaves = Math.max(0, changedLeaves.length - recentChangedLeaves.length);
 
   const avgCardinal = average(state.cardinals.map((item) => item.value));
@@ -356,6 +356,7 @@ export const createDashboardMarkup = (state) => {
                         )
                         .join("")}
                     </div>
+                    ${remainingChangedLeaves > 0 ? `<p class="table-note">+${remainingChangedLeaves} folhas fora da visualização.</p>` : ""}
                   `
                   : `<p class="empty-state">Nenhuma folha foi alterada ainda.</p>`}
               </div>
@@ -365,20 +366,19 @@ export const createDashboardMarkup = (state) => {
                 <header class="card__header">
                   <div>
                     <p class="eyebrow">Card 11</p>
-                    <h3>Histórico das folhas alteradas</h3>
+                    <h3>Últimas folhas alteradas</h3>
                   </div>
                 </header>
               ${
                 recentChangedLeaves.length
                   ? `
-                    <div class="progress-table-shell">
-                      <table class="progress-table">
+                    <div class="progress-table-shell progress-table-shell--compact">
+                      <table class="progress-table progress-table--compact">
                         <thead>
                           <tr>
-                            <th>Nome</th>
-                            <th>Início</th>
-                            <th>Valor Anterior</th>
-                            <th>Valor Atual</th>
+                            <th>Folha</th>
+                            <th>Antes</th>
+                            <th>Agora</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -386,13 +386,12 @@ export const createDashboardMarkup = (state) => {
                             .map(
                                 (leaf) => `
                                   <tr>
-                                    <td data-label="Nome">
+                                    <td data-label="Folha">
                                       <strong>${leaf.name}</strong>
                                       <span>${leaf.cardinalName}</span>
                                     </td>
-                                    <td data-label="Início">${leaf.startValue}</td>
-                                    <td data-label="Valor Anterior">${leaf.previousValue}</td>
-                                    <td data-label="Valor Atual">${leaf.currentValue}</td>
+                                    <td data-label="Antes">${leaf.previousValue}</td>
+                                    <td data-label="Agora">${leaf.currentValue}</td>
                                   </tr>
                                 `
                             )
@@ -409,7 +408,7 @@ export const createDashboardMarkup = (state) => {
               <header class="card__header">
                 <div>
                   <p class="eyebrow">Card 12</p>
-                  <h3>Resumo rápido dos cardinais</h3>
+                  <h3>Resumo dos cardinais</h3>
                 </div>
               </header>
               <div class="progress-table-shell progress-table-shell--compact">
@@ -418,24 +417,21 @@ export const createDashboardMarkup = (state) => {
                     <tr>
                       <th>Cardinal</th>
                       <th>Valor</th>
-                      <th>Média</th>
+                      <th>Folhas</th>
                     </tr>
                   </thead>
                   <tbody>
                     ${state.cardinals
                       .map((cardinal) => {
                         const related = state.baseVariables.filter((leaf) => leaf.cardinalId === cardinal.id);
-                        const leafAverage = related.length
-                          ? average(related.map((leaf) => leaf.currentValue))
-                          : cardinal.value;
                         return `
                           <tr>
                             <td data-label="Cardinal">
                               <strong>${cardinal.name}</strong>
-                              <span>${related.length} folhas</span>
+                              <span>${cardinal.id}</span>
                             </td>
                             <td data-label="Valor">${cardinal.value}</td>
-                            <td data-label="Média">${leafAverage.toFixed(1)}</td>
+                            <td data-label="Folhas">${related.length}</td>
                           </tr>
                         `;
                       })
