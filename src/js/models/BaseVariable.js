@@ -2,6 +2,8 @@ export class BaseVariable {
   constructor({
     id,
     cardinalId,
+    nodeId = "",
+    nodeName = "",
     name,
     startValue,
     targetValue,
@@ -14,6 +16,8 @@ export class BaseVariable {
   }) {
     this.id = id;
     this.cardinalId = cardinalId;
+    this.nodeId = nodeId;
+    this.nodeName = nodeName;
     this.name = name;
     this.startValue = startValue;
     this.targetValue = targetValue;

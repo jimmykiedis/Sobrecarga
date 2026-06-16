@@ -11,7 +11,7 @@ export const renderLeafModal = ({ leaves, query, selectedLeafId }) => {
             >
               <div>
                 <strong>${leaf.name}</strong>
-                <span>${leaf.cardinalName}</span>
+                <span>${leaf.cardinalName} • ${leaf.nodeName || "Sem nó"}</span>
               </div>
               <div class="leaf-result__meta">
                 <span>Atual: ${leaf.currentValue}</span>

@@ -1,6 +1,8 @@
 import {
   createDefaultState,
   normalizeState,
+  deriveCardinalValues,
+  mergeStateWithSeed,
   updateCardinalValue,
   updateLeafValue,
   setWeeklyReviewScore,
@@ -48,10 +50,10 @@ const storageKey = (user) => `${STORAGE_PREFIX}${user.uid || user.email || "gues
 const loadSavedState = (user) => {
   try {
     const saved = localStorage.getItem(storageKey(user));
-    if (!saved) return normalizeState(createDefaultState());
-    return normalizeState({ ...createDefaultState(), ...JSON.parse(saved) });
+    if (!saved) return createDefaultState();
+    return mergeStateWithSeed(JSON.parse(saved));
   } catch {
-    return normalizeState(createDefaultState());
+    return createDefaultState();
   }
 };
 
@@ -61,10 +63,12 @@ const saveState = () => {
 };
 
 const syncDerivedState = () => {
-  const values = state.localState.cardinals.map((item) => item.value);
+  const derivedCardinals = deriveCardinalValues(state.localState.baseVariables);
+  const values = derivedCardinals.map((item) => item.value);
   const mood = getMoodFromAverageValue(values);
   state.localState = {
     ...state.localState,
+    cardinals: derivedCardinals,
     mood,
     averageCardinalValue: average(values),
     updatedAt: new Date().toISOString(),
@@ -258,6 +262,13 @@ function handleDashboardClick(event) {
     return;
   }
 
+  if (action === "leaf-delta") {
+    const delta = Number(target.dataset.delta);
+    const leafId = target.dataset.leafId;
+    setLocalState((current) => updateLeafValue(current, leafId, delta));
+    return;
+  }
+
   if (action === "set-weekly-score") {
     const value = Number(target.dataset.value);
     setLocalState((current) => setWeeklyReviewScore(current, value));
@@ -357,7 +368,7 @@ const setupAuthListener = async () => {
         state.localState = loadSavedState(state.user);
         state.loading = false;
         state.dirty = false;
-        state.syncMessage = "Carregado do localStorage";
+        state.syncMessage = "Workspace atualizado com a árvore atual";
         render();
         return;
       }

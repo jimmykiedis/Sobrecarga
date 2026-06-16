@@ -1,203 +1,426 @@
 import { BaseVariable } from "../models/BaseVariable.js";
 import { CardinalVariable } from "../models/CardinalVariable.js";
 import { addDays } from "../utils/dates.js";
-import { clamp } from "../utils/calculations.js";
+import { average, clamp } from "../utils/calculations.js";
 
 const now = new Date();
+export const CURRENT_SCHEMA_VERSION = 2;
 
-const cardinalSeed = [
-  { id: "identidade", name: "Identidade", value: 82, color: "#f59e0b", icon: "◌" },
-  { id: "mental", name: "Saúde Mental", value: 74, color: "#8b5cf6", icon: "◐" },
-  { id: "fisica", name: "Saúde Física", value: 68, color: "#10b981", icon: "◍" },
-  { id: "familia", name: "Família", value: 77, color: "#ef4444", icon: "◑" },
-  { id: "profissional", name: "Profissional", value: 71, color: "#0ea5e9", icon: "◓" },
+const cardinalDefinitions = [
+  { id: "identidade", name: "Identidade", color: "#f59e0b", icon: "◌" },
+  { id: "mental", name: "Saúde Mental", color: "#8b5cf6", icon: "◐" },
+  { id: "fisica", name: "Saúde Física", color: "#10b981", icon: "◍" },
+  { id: "familia", name: "Família", color: "#ef4444", icon: "◑" },
+  { id: "profissional", name: "Profissional", color: "#0ea5e9", icon: "◓" },
 ];
+
+const createLeaf = ({
+  id,
+  cardinalId,
+  nodeId,
+  nodeName,
+  name,
+  currentValue,
+  targetValue,
+  startValue,
+  horizonDays,
+  note,
+  brothers = [],
+  archived = false,
+  createdAtOffsetDays = -30,
+}) =>
+  new BaseVariable({
+    id,
+    cardinalId,
+    nodeId,
+    nodeName,
+    name,
+    currentValue,
+    targetValue,
+    startValue,
+    createdAt: addDays(now, createdAtOffsetDays),
+    horizonDays,
+    note,
+    brothers,
+    archived,
+  });
+
+const createLeaves = ({
+  cardinalId,
+  nodeId,
+  nodeName,
+  horizonDays,
+  startOffset = 6,
+  targetValue = 85,
+  currentValue = 74,
+  items,
+}) =>
+  items.map((item, index) => {
+    const spec = typeof item === "string" ? { name: item } : item;
+    const value = spec.currentValue ?? Math.max(49, Math.min(99, currentValue - index));
+    const target = spec.targetValue ?? targetValue;
+    const start = spec.startValue ?? Math.max(49, Math.min(99, value - (spec.startOffset ?? startOffset)));
+    return createLeaf({
+      id: spec.id || `${cardinalId}-${nodeId}-${index}`,
+      cardinalId,
+      nodeId,
+      nodeName,
+      name: spec.name,
+      currentValue: value,
+      targetValue: target,
+      startValue: start,
+      horizonDays: spec.horizonDays ?? horizonDays,
+      note: spec.note || `${spec.name} dentro de ${nodeName}.`,
+      brothers: spec.brothers || [],
+      archived: spec.archived || false,
+      createdAtOffsetDays: spec.createdAtOffsetDays ?? -30 - index * 7,
+    });
+  });
 
 const leafSeed = [
-  new BaseVariable({
-    id: "sono",
-    cardinalId: "mental",
-    name: "Sono consistente",
-    startValue: 58,
-    targetValue: 74,
-    currentValue: 66,
-    createdAt: addDays(now, -18),
-    horizonDays: 90,
-    note: "Dormir com horário previsível por duas semanas.",
-    brothers: ["meditacao"],
-  }),
-  new BaseVariable({
-    id: "meditacao",
-    cardinalId: "mental",
-    name: "Meditação curta",
-    startValue: 61,
-    targetValue: 79,
-    currentValue: 64,
-    createdAt: addDays(now, -12),
-    horizonDays: 30,
-    note: "Sessões curtas para baixar ruído mental.",
-    brothers: ["sono"],
-  }),
-  new BaseVariable({
-    id: "terapia",
-    cardinalId: "mental",
-    name: "Sessão de terapia",
-    startValue: 70,
-    targetValue: 83,
-    currentValue: 74,
-    createdAt: addDays(now, -46),
-    horizonDays: 90,
-    note: "Levar a pauta da semana com honestidade.",
-  }),
-  new BaseVariable({
-    id: "caminhada",
-    cardinalId: "fisica",
-    name: "Caminhada diária",
-    startValue: 55,
-    targetValue: 73,
-    currentValue: 62,
-    createdAt: addDays(now, -8),
-    horizonDays: 30,
-    note: "Mover o corpo sem cobrança de performance.",
-  }),
-  new BaseVariable({
-    id: "hidracao",
-    cardinalId: "fisica",
-    name: "Hidratação",
-    startValue: 63,
-    targetValue: 82,
-    currentValue: 71,
-    createdAt: addDays(now, -23),
-    horizonDays: 30,
-    note: "Garrafas cheias na mesa e na bolsa.",
-  }),
-  new BaseVariable({
-    id: "alimentacao",
-    cardinalId: "fisica",
-    name: "Alimentação simples",
-    startValue: 64,
-    targetValue: 81,
-    currentValue: 69,
-    createdAt: addDays(now, -35),
-    horizonDays: 90,
-    note: "Planejar refeições com menos improviso.",
-  }),
-  new BaseVariable({
-    id: "tempo-filho",
-    cardinalId: "familia",
-    name: "Tempo com meu filho",
-    startValue: 67,
-    targetValue: 81,
-    currentValue: 72,
-    createdAt: addDays(now, -15),
-    horizonDays: 90,
-    note: "Presença sem celular por alguns minutos.",
-  }),
-  new BaseVariable({
-    id: "conversa-casal",
-    cardinalId: "familia",
-    name: "Conversa de alinhamento",
-    startValue: 71,
-    targetValue: 85,
-    currentValue: 74,
-    createdAt: addDays(now, -29),
-    horizonDays: 90,
-    note: "Escuta sem resolver tudo de uma vez.",
-  }),
-  new BaseVariable({
-    id: "rotina-casa",
-    cardinalId: "familia",
-    name: "Rotina da casa",
-    startValue: 59,
-    targetValue: 78,
-    currentValue: 63,
-    createdAt: addDays(now, -61),
-    horizonDays: 365,
-    note: "Diminuir atrito nas tarefas domésticas.",
-  }),
-  new BaseVariable({
-    id: "foco-profundo",
-    cardinalId: "profissional",
-    name: "Foco profundo",
-    startValue: 60,
-    targetValue: 79,
-    currentValue: 67,
-    createdAt: addDays(now, -20),
-    horizonDays: 30,
-    note: "Protejer blocos sem interrupção.",
-  }),
-  new BaseVariable({
-    id: "priorizacao",
-    cardinalId: "profissional",
-    name: "Priorização da semana",
-    startValue: 62,
-    targetValue: 84,
-    currentValue: 70,
-    createdAt: addDays(now, -40),
-    horizonDays: 30,
-    note: "Escolher menos coisas com mais clareza.",
-  }),
-  new BaseVariable({
-    id: "aprendizado",
-    cardinalId: "profissional",
-    name: "Aprendizado direcionado",
-    startValue: 66,
-    targetValue: 82,
-    currentValue: 72,
-    createdAt: addDays(now, -95),
-    horizonDays: 365,
-    note: "Ler e aplicar sem virar obrigação vazia.",
-  }),
-  new BaseVariable({
-    id: "autoconhecimento",
+  ...createLeaves({
     cardinalId: "identidade",
-    name: "Autoconhecimento",
-    startValue: 74,
-    targetValue: 87,
-    currentValue: 80,
-    createdAt: addDays(now, -120),
+    nodeId: "homem",
+    nodeName: "Homem",
     horizonDays: 365,
-    note: "Registrar percepções sem censura.",
-  }),
-  new BaseVariable({
-    id: "valores",
-    cardinalId: "identidade",
-    name: "Valores pessoais",
-    startValue: 78,
+    currentValue: 82,
     targetValue: 90,
-    currentValue: 84,
-    createdAt: addDays(now, -44),
+    items: [
+      "Desenvolvimento Pessoal",
+      "Valores",
+      "Princípios",
+      "Propósito",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "identidade",
+    nodeId: "amigo",
+    nodeName: "Amigo",
     horizonDays: 365,
-    note: "Voltar para o que realmente importa.",
+    currentValue: 76,
+    targetValue: 84,
+    items: [
+      { name: "Rede de Apoio", brothers: ["Socialização"] },
+      { name: "Socialização", brothers: ["Rede de Apoio"] },
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "identidade",
+    nodeId: "objetivos",
+    nodeName: "Objetivos",
+    horizonDays: 365,
+    currentValue: 70,
+    targetValue: 86,
+    items: [
+      { id: "identidade-90-dias", name: "90 Dias", horizonDays: 90, targetValue: 78 },
+      { id: "identidade-1-ano", name: "1 Ano", horizonDays: 365, targetValue: 82 },
+      { id: "identidade-5-anos", name: "5 Anos", horizonDays: 1825, targetValue: 88 },
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "identidade",
+    nodeId: "preocupacoes",
+    nodeName: "Preocupações",
+    horizonDays: 90,
+    currentValue: 64,
+    targetValue: 76,
+    items: [
+      "Crise de Identidade",
+      "Solidão",
+      "Futuro",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "mental",
+    nodeId: "estado-emocional",
+    nodeName: "Estado Emocional",
+    horizonDays: 30,
+    currentValue: 72,
+    targetValue: 83,
+    items: [
+      "Humor",
+      "Estresse",
+      "Ansiedade",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "mental",
+    nodeId: "bem-estar-psicologico",
+    nodeName: "Bem-estar Psicológico",
+    horizonDays: 90,
+    currentValue: 78,
+    targetValue: 88,
+    items: [
+      "Autoconhecimento",
+      "Terapia",
+      "Equilíbrio Emocional",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "mental",
+    nodeId: "objetivos",
+    nodeName: "Objetivos",
+    horizonDays: 90,
+    currentValue: 70,
+    targetValue: 84,
+    items: [
+      { id: "mental-reduzir-estresse", name: "Reduzir Estresse", horizonDays: 90 },
+      { id: "mental-melhorar-equilibrio", name: "Melhorar Equilíbrio Emocional", horizonDays: 90 },
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "mental",
+    nodeId: "preocupacoes",
+    nodeName: "Preocupações",
+    horizonDays: 90,
+    currentValue: 62,
+    targetValue: 74,
+    items: [
+      "Sobrecarga Mental",
+      "Burnout",
+      "Ansiedade",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "fisica",
+    nodeId: "corpo",
+    nodeName: "Corpo",
+    horizonDays: 30,
+    currentValue: 68,
+    targetValue: 82,
+    items: [
+      "Sono",
+      "Energia",
+      "Exercícios",
+      "Alimentação",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "fisica",
+    nodeId: "indicadores",
+    nodeName: "Indicadores",
+    horizonDays: 90,
+    currentValue: 66,
+    targetValue: 80,
+    items: [
+      "Peso",
+      "Condicionamento",
+      "Exames",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "fisica",
+    nodeId: "objetivos",
+    nodeName: "Objetivos",
+    horizonDays: 90,
+    currentValue: 69,
+    targetValue: 84,
+    items: [
+      { id: "fisica-dormir-7h", name: "Dormir 7h", horizonDays: 90 },
+      { id: "fisica-voltar-treinar", name: "Voltar a Treinar", horizonDays: 90 },
+      { id: "fisica-melhorar-energia", name: "Melhorar Energia", horizonDays: 90 },
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "fisica",
+    nodeId: "preocupacoes",
+    nodeName: "Preocupações",
+    horizonDays: 90,
+    currentValue: 61,
+    targetValue: 75,
+    items: [
+      "Sedentarismo",
+      "Exaustão",
+      "Doenças",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "familia",
+    nodeId: "pai",
+    nodeName: "Pai",
+    horizonDays: 90,
+    currentValue: 74,
+    targetValue: 86,
+    items: [
+      "Tempo de Qualidade",
+      "Educação",
+      "Rotina",
+      "Finanças do Filho",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "familia",
+    nodeId: "ex-companheiro",
+    nodeName: "Ex-Companheiro",
+    horizonDays: 90,
+    currentValue: 68,
+    targetValue: 80,
+    items: [
+      "Comunicação",
+      "Guarda Compartilhada",
+      "Bem-estar da Mãe da Criança",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "familia",
+    nodeId: "gestao-familiar",
+    nodeName: "Gestão Familiar",
+    horizonDays: 90,
+    currentValue: 72,
+    targetValue: 84,
+    items: [
+      "Agenda",
+      "Compromissos",
+      "Gastos",
+      "Saúde",
+      "Desenvolvimento",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "familia",
+    nodeId: "objetivos",
+    nodeName: "Objetivos",
+    horizonDays: 90,
+    currentValue: 69,
+    targetValue: 83,
+    items: [
+      { id: "familia-rotina-estavel-filho", name: "Rotina Estável do Filho", horizonDays: 90 },
+      { id: "familia-separacao-saudavel", name: "Separação Saudável", horizonDays: 90 },
+      { id: "familia-melhor-comunicacao", name: "Melhor Comunicação", horizonDays: 90 },
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "familia",
+    nodeId: "preocupacoes",
+    nodeName: "Preocupações",
+    horizonDays: 90,
+    currentValue: 60,
+    targetValue: 74,
+    items: [
+      "Educação do Filho",
+      "Conflitos Familiares",
+      "Falta de Tempo",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "profissional",
+    nodeId: "empresario",
+    nodeName: "Empresário",
+    horizonDays: 90,
+    currentValue: 76,
+    targetValue: 88,
+    items: [
+      "Operação",
+      "Crescimento",
+      "Equipe",
+      "Finanças",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "profissional",
+    nodeId: "indicadores",
+    nodeName: "Indicadores",
+    horizonDays: 90,
+    currentValue: 72,
+    targetValue: 85,
+    items: [
+      "Receita",
+      "Lucro",
+      "Funcionários",
+      "Projetos",
+      "Problemas Críticos",
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "profissional",
+    nodeId: "objetivos",
+    nodeName: "Objetivos",
+    horizonDays: 90,
+    currentValue: 70,
+    targetValue: 84,
+    items: [
+      { id: "profissional-delegar-operacao", name: "Delegar Operação", horizonDays: 90 },
+      { id: "profissional-crescimento-empresa", name: "Crescimento da Empresa", horizonDays: 365 },
+      { id: "profissional-liberdade-financeira", name: "Liberdade Financeira", horizonDays: 1825 },
+    ],
+  }),
+  ...createLeaves({
+    cardinalId: "profissional",
+    nodeId: "preocupacoes",
+    nodeName: "Preocupações",
+    horizonDays: 90,
+    currentValue: 63,
+    targetValue: 76,
+    items: [
+      "Fluxo de Caixa",
+      "Sobrecarga de Trabalho",
+      "Riscos do Negócio",
+    ],
   }),
 ];
 
-export const createDefaultState = () => ({
-  cardinals: cardinalSeed.map((item) => new CardinalVariable(item)),
-  baseVariables: leafSeed.map((item) => ({ ...item })),
-  weeklyReview: {
-    moodValue: 0,
-    moodLabel: "Neutro",
-    progressionScore: 0,
-    note: "",
-  },
-  nextStep: {
-    leafId: leafSeed[0].id,
-    text: leafSeed[0].name,
-  },
-  showArchive: false,
-  leafSearchQuery: "",
-  modalOpen: false,
-  updatedAt: new Date().toISOString(),
-});
+function calculateCardinalAverage(cardinalId, leaves) {
+  const values = leaves.filter((leaf) => leaf.cardinalId === cardinalId).map((leaf) => leaf.currentValue);
+  if (!values.length) return 49;
+  return Math.round(average(values));
+}
+
+function buildCardinalsFromLeaves(leaves) {
+  return cardinalDefinitions.map((cardinal) =>
+    new CardinalVariable({
+      ...cardinal,
+      value: calculateCardinalAverage(cardinal.id, leaves),
+    })
+  );
+}
+
+function nudgeLeaves(leaves, cardinalId, delta) {
+  const related = leaves.filter((leaf) => leaf.cardinalId === cardinalId);
+  if (!related.length || delta === 0) return leaves;
+
+  const step = delta >= 0 ? 1 : -1;
+  const nextLeaves = leaves.map((leaf) => {
+    if (leaf.cardinalId !== cardinalId) return leaf;
+    return {
+      ...leaf,
+      currentValue: clamp(leaf.currentValue + step, 49, 99),
+    };
+  });
+
+  return nextLeaves;
+}
+
+export const createDefaultState = () => {
+  const cardinals = buildCardinalsFromLeaves(leafSeed);
+
+  return {
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    cardinals,
+    baseVariables: leafSeed.map((item) => ({ ...item })),
+    weeklyReview: {
+      moodValue: 0,
+      moodLabel: "Neutro",
+      progressionScore: 0,
+      note: "",
+    },
+    nextStep: {
+      leafId: leafSeed[0].id,
+      text: leafSeed[0].name,
+    },
+    showArchive: false,
+    leafSearchQuery: "",
+    modalOpen: false,
+    updatedAt: new Date().toISOString(),
+  };
+};
 
 export const normalizeState = (state) => ({
   ...state,
-  cardinals: state.cardinals.map((cardinal) => ({
+  cardinals: (state.cardinals || []).map((cardinal) => ({
     ...cardinal,
     value: clamp(cardinal.value, 49, 99),
   })),
-  baseVariables: state.baseVariables.map((leaf) => ({
+  baseVariables: (state.baseVariables || []).map((leaf) => ({
     ...leaf,
     startValue: clamp(leaf.startValue, 49, 99),
     targetValue: clamp(leaf.targetValue, 49, 99),
@@ -207,11 +430,7 @@ export const normalizeState = (state) => ({
 
 export const updateCardinalValue = (state, cardinalId, delta) => ({
   ...state,
-  cardinals: state.cardinals.map((cardinal) =>
-    cardinal.id === cardinalId
-      ? { ...cardinal, value: clamp(cardinal.value + delta, 49, 99) }
-      : cardinal
-  ),
+  baseVariables: nudgeLeaves(state.baseVariables, cardinalId, delta),
   updatedAt: new Date().toISOString(),
 });
 
@@ -267,3 +486,48 @@ export const toggleArchive = (state) => ({
   ...state,
   showArchive: !state.showArchive,
 });
+
+export const deriveCardinalValues = (baseVariables) => buildCardinalsFromLeaves(baseVariables);
+
+export const mergeStateWithSeed = (savedState) => {
+  const seedState = createDefaultState();
+  if (savedState?.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+    return seedState;
+  }
+
+  const savedLeaves = new Map(
+    (savedState?.baseVariables || []).map((leaf) => [leaf.id, leaf])
+  );
+  const mergedLeaves = seedState.baseVariables.map((seedLeaf) => {
+    const savedLeaf = savedLeaves.get(seedLeaf.id);
+    return savedLeaf ? { ...seedLeaf, ...savedLeaf } : seedLeaf;
+  });
+  const appendedSavedLeaves = (savedState?.baseVariables || []).filter(
+    (leaf) => !mergedLeaves.some((item) => item.id === leaf.id)
+  );
+
+  const mergedBaseVariables = [...mergedLeaves, ...appendedSavedLeaves.map((leaf) => ({
+    ...leaf,
+    currentValue: clamp(leaf.currentValue, 49, 99),
+    startValue: clamp(leaf.startValue, 49, 99),
+    targetValue: clamp(leaf.targetValue, 49, 99),
+  }))];
+
+  const defaultNextStepId = seedState.nextStep.leafId;
+  const savedNextStepId = savedState?.nextStep?.leafId;
+  const nextStepLeafId = mergedBaseVariables.some((leaf) => leaf.id === savedNextStepId)
+    ? savedNextStepId
+    : defaultNextStepId;
+
+  return normalizeState({
+    ...seedState,
+    ...savedState,
+    baseVariables: mergedBaseVariables,
+    nextStep: {
+      leafId: nextStepLeafId,
+      text:
+        mergedBaseVariables.find((leaf) => leaf.id === nextStepLeafId)?.name ||
+        seedState.nextStep.text,
+    },
+  });
+};

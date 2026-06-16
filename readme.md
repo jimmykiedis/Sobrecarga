@@ -69,6 +69,20 @@ O prototipo ja vem com 5 cardinais:
 - Familia
 - Profissional
 
+### Estrutura da arvore
+
+- Nivel 1: cards tronco
+  - Identidade
+  - Saude Mental
+  - Saude Fisica
+  - Familia
+  - Profissional
+- Nivel 2: cards internos dentro de cada tronco
+- Nivel 3: folhas com valor e prazo
+
+Alterar uma folha altera automaticamente a media do tronco.
+Alterar o tronco redistribui a mudanca entre as folhas daquele tronco.
+
 ### Variaveis base
 
 O prototipo ja vem com 14 folhas de exemplo, entre elas:

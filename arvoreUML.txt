@@ -1,0 +1,126 @@
+@startmindmap
+
+* Vida
+
+** Identidade
+
+*** Homem
+**** Desenvolvimento Pessoal
+**** Valores
+**** Princípios
+**** Propósito
+
+*** Amigo
+**** Rede de Apoio
+**** Socialização
+
+*** Objetivos
+**** 90 Dias
+**** 1 Ano
+**** 5 Anos
+
+*** Preocupações
+**** Crise de Identidade
+**** Solidão
+**** Futuro
+
+** Saúde Mental
+
+*** Estado Emocional
+**** Humor
+**** Estresse
+**** Ansiedade
+
+*** Bem-estar Psicológico
+**** Autoconhecimento
+**** Terapia
+**** Equilíbrio Emocional
+
+*** Objetivos
+**** Reduzir Estresse
+**** Melhorar Equilíbrio Emocional
+
+*** Preocupações
+**** Sobrecarga Mental
+**** Burnout
+**** Ansiedade
+
+** Saúde Física
+
+*** Corpo
+**** Sono
+**** Energia
+**** Exercícios
+**** Alimentação
+
+*** Indicadores
+**** Peso
+**** Condicionamento
+**** Exames
+
+*** Objetivos
+**** Dormir 7h
+**** Voltar a Treinar
+**** Melhorar Energia
+
+*** Preocupações
+**** Sedentarismo
+**** Exaustão
+**** Doenças
+
+** Família
+
+*** Pai
+**** Tempo de Qualidade
+**** Educação
+**** Rotina
+**** Finanças do Filho
+
+*** Ex-Companheiro
+**** Comunicação
+**** Guarda Compartilhada
+**** Bem-estar da Mãe da Criança
+
+*** Gestão Familiar
+**** Agenda
+**** Compromissos
+**** Gastos
+**** Saúde
+**** Desenvolvimento
+
+*** Objetivos
+**** Rotina Estável do Filho
+**** Separação Saudável
+**** Melhor Comunicação
+
+*** Preocupações
+**** Educação do Filho
+**** Conflitos Familiares
+**** Falta de Tempo
+
+** Profissional
+
+*** Empresário
+**** Operação
+**** Crescimento
+**** Equipe
+**** Finanças
+
+*** Indicadores
+**** Receita
+**** Lucro
+**** Funcionários
+**** Projetos
+**** Problemas Críticos
+
+*** Objetivos
+**** Delegar Operação
+**** Crescimento da Empresa
+**** Liberdade Financeira
+
+*** Preocupações
+**** Fluxo de Caixa
+**** Sobrecarga de Trabalho
+**** Riscos do Negócio
+
+@endmindmap
