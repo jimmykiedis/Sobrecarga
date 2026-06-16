@@ -5,6 +5,7 @@
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
   padding: 20px;
+  min-width: 0;
 }
 
 .card--hero {
@@ -361,29 +362,93 @@ h3 {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
 }
 
+.horizon-tone {
+  --horizon-color: var(--horizon-2);
+}
+
+.horizon-tone--0 {
+  --horizon-color: var(--horizon-1);
+}
+
+.horizon-tone--1 {
+  --horizon-color: var(--horizon-2);
+}
+
+.horizon-tone--2 {
+  --horizon-color: var(--horizon-3);
+}
+
+.horizon-tone--3 {
+  --horizon-color: var(--horizon-4);
+}
+
+.horizon-tone--4 {
+  --horizon-color: var(--horizon-5);
+}
+
+.horizon-tone--5 {
+  --horizon-color: var(--horizon-6);
+}
+
+.leaf-item.horizon-tone {
+  border-color: color-mix(in srgb, var(--horizon-color) 28%, rgba(255, 255, 255, 0.06));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--horizon-color) 18%, transparent);
+}
+
+.leaf-item.horizon-tone .leaf-value-box {
+  background: color-mix(in srgb, var(--horizon-color) 14%, rgba(255, 255, 255, 0.05));
+  border-color: color-mix(in srgb, var(--horizon-color) 28%, rgba(255, 255, 255, 0.08));
+}
+
 .node-stack {
   display: grid;
   gap: 14px;
 }
 
 .node-card {
-  padding: 14px;
+  overflow: hidden;
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   background: rgba(255, 255, 255, 0.03);
 }
 
 .node-card__header {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 12px;
+  padding: 14px;
+  background: transparent;
+  text-align: left;
 }
 
 .node-card h4 {
   margin: 0;
   font-size: 1rem;
+}
+
+.node-card__header.is-open {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.leaf-stack {
+  display: grid;
+  gap: 10px;
+  padding: 0 14px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(-4px);
+  transition: max-height 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.leaf-stack.is-open {
+  max-height: 3000px;
+  opacity: 1;
+  transform: translateY(0);
+  padding-bottom: 14px;
 }
 
 .leaf-item__heading,
@@ -439,12 +504,12 @@ h3 {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--muted);
+  color: var(--horizon-color, var(--muted));
 }
 
 .leaf-horizon input[type="range"] {
   width: 100%;
-  accent-color: var(--accent);
+  accent-color: var(--horizon-color, var(--accent));
   cursor: pointer;
 }
 
@@ -606,12 +671,14 @@ h3 {
 
 .hidden-panels-shell {
   grid-column: 1 / -1;
+  min-width: 0;
 }
 
 .hidden-panels {
   display: none;
   gap: 18px;
   margin-top: 14px;
+  min-width: 0;
 }
 
 .hidden-panels.is-open {
@@ -639,6 +706,77 @@ h3 {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+}
+
+.progress-table-shell {
+  overflow: auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  max-height: 320px;
+}
+
+.progress-table {
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  min-width: 0;
+  table-layout: fixed;
+  font-size: 0.84rem;
+}
+
+.progress-table th,
+.progress-table td {
+  padding: 9px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.progress-table th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.progress-table td:first-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.progress-table td:first-child span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.progress-table--compact th,
+.progress-table--compact td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.progress-table-shell--compact {
+  max-height: none;
+}
+
+.table-note {
+  margin: 0;
+  padding: 8px 12px 12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.progress-table tr:last-child td {
+  border-bottom: 0;
 }
 
 .progress-bar {
@@ -737,6 +875,66 @@ h3 {
   .archive-row,
   .cardinal-row {
     flex-direction: column;
+  }
+
+  .progress-table-shell {
+    overflow: visible;
+  }
+
+  .progress-table {
+    min-width: 0;
+    display: block;
+  }
+
+  .progress-table thead {
+    display: none;
+  }
+
+  .progress-table tbody,
+  .progress-table tr {
+    display: block;
+  }
+
+  .progress-table tr {
+    margin-bottom: 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .progress-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 0;
+  }
+
+  .progress-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex: 0 0 auto;
+  }
+
+  .progress-table td:first-child {
+    display: block;
+  }
+
+  .progress-table td:first-child::before {
+    content: none;
+  }
+
+  .progress-table td:first-child strong,
+  .progress-table td:first-child span {
+    display: block;
+  }
+
+  .progress-table td:first-child span {
+    margin-top: 4px;
   }
 
   .mood-grid {

@@ -14,8 +14,14 @@ const leafToneClass = (value) => {
   return "tone-critical";
 };
 
+const horizonToneClass = (value) => {
+  const index = horizonValueToIndex(value);
+  return `horizon-tone horizon-tone--${index}`;
+};
+
 export const createDashboardMarkup = (state) => {
   const summary = buildReviewSummary(state);
+  const openNodeKeys = new Set(state.ui?.openNodeKeys || []);
   const radarItems = state.cardinals.map((item) => ({
     ...item,
     value: item.value,
@@ -46,8 +52,11 @@ export const createDashboardMarkup = (state) => {
       ...leaf,
       cardinalName: state.cardinals.find((item) => item.id === leaf.cardinalId)?.name || "",
       horizonLabel: horizonLabel(leaf.horizonDays),
+      previousValue: leaf.previousValue ?? leaf.currentValue,
       progress: progressBetween(leaf.startValue, leaf.currentValue, leaf.targetValue),
     }));
+  const recentChangedLeaves = changedLeaves.slice(0, 8);
+  const remainingChangedLeaves = Math.max(0, changedLeaves.length - recentChangedLeaves.length);
 
   const avgCardinal = average(state.cardinals.map((item) => item.value));
   const moodEmoji = summary.mood.emoji;
@@ -68,7 +77,12 @@ export const createDashboardMarkup = (state) => {
         });
       });
 
-    return [...nodes.entries()].map(([nodeName, leaves]) => ({ nodeName, leaves }));
+    return [...nodes.entries()].map(([nodeName, leaves]) => ({
+      nodeName,
+      key: `${cardinalId}::${nodeName}`,
+      isOpen: openNodeKeys.has(`${cardinalId}::${nodeName}`),
+      leaves,
+    }));
   };
 
   return `
@@ -205,18 +219,25 @@ export const createDashboardMarkup = (state) => {
                   ${nodeGroups
                     .map(
                       (node) => `
-                        <section class="node-card">
-                          <header class="node-card__header">
+                    <section class="node-card">
+                          <button
+                            type="button"
+                            class="node-card__header ${node.isOpen ? "is-open" : ""}"
+                            data-action="toggle-node"
+                            data-node-key="${node.key}"
+                            data-cardinal-id="${cardinal.id}"
+                            aria-expanded="${node.isOpen ? "true" : "false"}"
+                          >
                             <div>
                               <h4>${node.nodeName}</h4>
                             </div>
                             <span class="chip">${node.leaves.length} folhas</span>
-                          </header>
-                          <div class="leaf-stack">
+                          </button>
+                          <div class="leaf-stack ${node.isOpen ? "is-open" : ""}">
                             ${node.leaves
                               .map(
                                 (leaf) => `
-                                  <div class="leaf-item ${leafToneClass(leaf.currentValue)}" data-leaf-id="${leaf.id}">
+                                  <div class="leaf-item ${leafToneClass(leaf.currentValue)} ${horizonToneClass(leaf.horizonDays)}" data-leaf-id="${leaf.id}">
                                     <div class="leaf-item__heading">
                                       <strong>${leaf.name}</strong>
                                     </div>
@@ -225,7 +246,7 @@ export const createDashboardMarkup = (state) => {
                                       <div class="leaf-value-box__value" data-leaf-value="${leaf.id}">${leaf.currentValue}</div>
                                       <button type="button" class="stepper-button stepper-button--success stepper-button--tiny" data-action="leaf-delta" data-leaf-id="${leaf.id}" data-delta="1">+</button>
                                     </div>
-                                    <div class="leaf-horizon">
+                                    <div class="leaf-horizon ${horizonToneClass(leaf.horizonDays)}">
                                       <input
                                         type="range"
                                         min="0"
@@ -235,6 +256,7 @@ export const createDashboardMarkup = (state) => {
                                         data-field="leaf-horizon"
                                         data-leaf-id="${leaf.id}"
                                         data-leaf-horizon-input="${leaf.id}"
+                                        style="--horizon-accent: var(--horizon-${horizonValueToIndex(leaf.horizonDays) + 1});"
                                         aria-label="Selecionar prazo de ${leaf.name}"
                                       />
                                       <span class="leaf-horizon__current" data-leaf-horizon-label="${leaf.id}">${horizonLabel(leaf.horizonDays)}</span>
@@ -340,33 +362,86 @@ export const createDashboardMarkup = (state) => {
             </article>
 
             <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="progress">
+                <header class="card__header">
+                  <div>
+                    <p class="eyebrow">Card 11</p>
+                    <h3>Histórico das folhas alteradas</h3>
+                  </div>
+                </header>
+              ${
+                recentChangedLeaves.length
+                  ? `
+                    <div class="progress-table-shell">
+                      <table class="progress-table">
+                        <thead>
+                          <tr>
+                            <th>Nome</th>
+                            <th>Início</th>
+                            <th>Valor Anterior</th>
+                            <th>Valor Atual</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${recentChangedLeaves
+                            .map(
+                                (leaf) => `
+                                  <tr>
+                                    <td data-label="Nome">
+                                      <strong>${leaf.name}</strong>
+                                      <span>${leaf.cardinalName}</span>
+                                    </td>
+                                    <td data-label="Início">${leaf.startValue}</td>
+                                    <td data-label="Valor Anterior">${leaf.previousValue}</td>
+                                    <td data-label="Valor Atual">${leaf.currentValue}</td>
+                                  </tr>
+                                `
+                            )
+                            .join("")}
+                        </tbody>
+                      </table>
+                    </div>
+                  `
+                  : `<p class="empty-state">Nenhuma folha foi alterada ainda.</p>`
+              }
+            </article>
+
+            <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="cardinals-summary">
               <header class="card__header">
                 <div>
-                  <p class="eyebrow">Card 11</p>
-                  <h3>Progresso médio das variáveis cardinais</h3>
+                  <p class="eyebrow">Card 12</p>
+                  <h3>Resumo rápido dos cardinais</h3>
                 </div>
               </header>
-              <div class="progress-chart" role="img" aria-label="Gráfico mostrando o progresso médio das variáveis cardinais">
-                ${state.cardinals
-                  .map((cardinal) => {
-                    const related = state.baseVariables.filter((leaf) => leaf.cardinalId === cardinal.id);
-                    const leafAverage = related.length
-                      ? average(related.map((leaf) => leaf.currentValue))
-                      : cardinal.value;
-                    const width = Math.max(10, ((leafAverage - 49) / 50) * 100);
-                    return `
-                      <div class="progress-row">
-                        <div class="progress-row__meta">
-                          <strong>${cardinal.name}</strong>
-                          <span>${leafAverage.toFixed(1)}</span>
-                        </div>
-                        <div class="progress-bar">
-                          <div class="progress-bar__fill" style="width:${width}%; --bar-color:${cardinal.color}"></div>
-                        </div>
-                      </div>
-                    `;
-                  })
-                  .join("")}
+              <div class="progress-table-shell progress-table-shell--compact">
+                <table class="progress-table progress-table--compact">
+                  <thead>
+                    <tr>
+                      <th>Cardinal</th>
+                      <th>Valor</th>
+                      <th>Média</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${state.cardinals
+                      .map((cardinal) => {
+                        const related = state.baseVariables.filter((leaf) => leaf.cardinalId === cardinal.id);
+                        const leafAverage = related.length
+                          ? average(related.map((leaf) => leaf.currentValue))
+                          : cardinal.value;
+                        return `
+                          <tr>
+                            <td data-label="Cardinal">
+                              <strong>${cardinal.name}</strong>
+                              <span>${related.length} folhas</span>
+                            </td>
+                            <td data-label="Valor">${cardinal.value}</td>
+                            <td data-label="Média">${leafAverage.toFixed(1)}</td>
+                          </tr>
+                        `;
+                      })
+                      .join("")}
+                  </tbody>
+                </table>
               </div>
             </article>
           </div>

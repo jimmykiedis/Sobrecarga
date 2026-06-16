@@ -8,6 +8,8 @@ export class BaseVariable {
     startValue,
     targetValue,
     currentValue,
+    previousValue = currentValue,
+    snapshotDate = "",
     createdAt,
     horizonDays,
     note = "",
@@ -22,6 +24,8 @@ export class BaseVariable {
     this.startValue = startValue;
     this.targetValue = targetValue;
     this.currentValue = currentValue;
+    this.previousValue = previousValue;
+    this.snapshotDate = snapshotDate;
     this.createdAt = createdAt;
     this.horizonDays = horizonDays;
     this.note = note;

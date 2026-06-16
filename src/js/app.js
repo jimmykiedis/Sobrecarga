@@ -12,6 +12,7 @@ import {
   setLeafSearchQuery,
   toggleModal,
   toggleArchive,
+  rolloverDailySnapshot,
 } from "./services/variableService.js";
 import {
   signInWithEmailAndPassword,
@@ -44,6 +45,7 @@ const state = {
 
 let dashboardEventsBound = false;
 let leafSearchTimer = null;
+const expandedNodeKeys = new Set();
 
 const cloneState = (value) => JSON.parse(JSON.stringify(value));
 
@@ -53,7 +55,7 @@ const loadSavedState = (user) => {
   try {
     const saved = localStorage.getItem(storageKey(user));
     if (!saved) return createDefaultState();
-    return mergeStateWithSeed(JSON.parse(saved));
+    return rolloverDailySnapshot(mergeStateWithSeed(JSON.parse(saved)));
   } catch {
     return createDefaultState();
   }
@@ -61,6 +63,7 @@ const loadSavedState = (user) => {
 
 const saveState = () => {
   if (!state.user) return;
+  state.localState = rolloverDailySnapshot(state.localState);
   localStorage.setItem(storageKey(state.user), JSON.stringify(state.localState));
 };
 
@@ -126,15 +129,7 @@ const renderLogin = () => {
 };
 
 const renderDashboard = () => {
-  app.innerHTML = createDashboardMarkup({
-    ...state.localState,
-    ui: {
-      dirty: state.dirty,
-      syncMessage: state.syncMessage,
-      saving: state.saving,
-      lastSavedAt: state.lastSavedAt,
-    },
-  });
+  app.innerHTML = buildDashboardMarkup();
   bindDashboardEvents();
   requestAnimationFrame(() => {
     const chart = app.querySelector(".radar-chart");
@@ -152,6 +147,7 @@ const buildDashboardMarkup = () =>
       syncMessage: state.syncMessage,
       saving: state.saving,
       lastSavedAt: state.lastSavedAt,
+      openNodeKeys: [...expandedNodeKeys],
     },
   });
 
@@ -251,7 +247,7 @@ const refreshLeafItem = (leafId) => {
 };
 
 const setLocalStatePartial = (updater, partialSelectors) => {
-  state.localState = normalizeState(updater(cloneState(state.localState)));
+  state.localState = rolloverDailySnapshot(normalizeState(updater(cloneState(state.localState))));
   syncDerivedState();
   state.dirty = true;
   state.syncMessage = "AlteraÃ§Ãµes salvas localmente";
@@ -287,7 +283,7 @@ const render = () => {
 };
 
 const setLocalState = (updater) => {
-  state.localState = normalizeState(updater(cloneState(state.localState)));
+  state.localState = rolloverDailySnapshot(normalizeState(updater(cloneState(state.localState))));
   syncDerivedState();
   state.dirty = true;
   state.syncMessage = "Alterações salvas localmente";
@@ -372,6 +368,22 @@ const buildLeafSelectors = (leafId, cardinalId) => [
   '[data-dashboard-section="overview-chart"]',
 ];
 
+const getNodeKey = (cardinalId, nodeName) => `${cardinalId}::${nodeName}`;
+
+const collectNodeKeysForCardinal = (cardinalId) => {
+  const keys = new Set();
+  state.localState.baseVariables
+    .filter((leaf) => leaf.cardinalId === cardinalId)
+    .forEach((leaf) => {
+      keys.add(getNodeKey(cardinalId, leaf.nodeName || "Sem grupo"));
+    });
+  return [...keys];
+};
+
+const openNodesForCardinal = (cardinalId) => {
+  collectNodeKeysForCardinal(cardinalId).forEach((key) => expandedNodeKeys.add(key));
+};
+
 function handleDashboardClick(event) {
   const target = event.target.closest("[data-action]");
   if (!target) return;
@@ -390,6 +402,7 @@ function handleDashboardClick(event) {
   if (action === "cardinal-delta") {
     const delta = Number(target.dataset.delta);
     const cardinalId = target.dataset.cardinalId;
+    openNodesForCardinal(cardinalId);
     setLocalStatePartial((current) => updateCardinalValue(current, cardinalId, delta), buildCardinalSelectors(cardinalId));
     return;
   }
@@ -399,6 +412,7 @@ function handleDashboardClick(event) {
     const leafId = target.dataset.leafId;
     const leaf = state.localState.baseVariables.find((item) => item.id === leafId);
     if (!leaf) return;
+    expandedNodeKeys.add(getNodeKey(leaf.cardinalId, leaf.nodeName || "Sem grupo"));
     setLocalStatePartial((current) => updateLeafValue(current, leafId, delta), buildLeafSelectors(leafId, leaf.cardinalId));
     return;
   }
@@ -430,6 +444,18 @@ function handleDashboardClick(event) {
 
   if (action === "toggle-archive") {
     setLocalState((current) => toggleArchive(current));
+  }
+
+  if (action === "toggle-node") {
+    const nodeKey = target.dataset.nodeKey;
+    const cardinalId = target.dataset.cardinalId;
+    if (!nodeKey || !cardinalId) return;
+    if (expandedNodeKeys.has(nodeKey)) {
+      expandedNodeKeys.delete(nodeKey);
+    } else {
+      expandedNodeKeys.add(nodeKey);
+    }
+    patchDashboardSections([`[data-dashboard-section="cardinal-panel"][data-cardinal-id="${cardinalId}"]`]);
   }
 }
 
@@ -519,6 +545,7 @@ const setupAuthListener = async () => {
   try {
     await onAuthStateChanged((user) => {
       if (user) {
+        expandedNodeKeys.clear();
         state.user = { uid: user.uid, email: user.email };
         state.loading = true;
         state.authReady = true;
@@ -536,6 +563,7 @@ const setupAuthListener = async () => {
       state.authReady = true;
       state.loading = false;
       state.localState = createDefaultState();
+      expandedNodeKeys.clear();
       clearTimeout(leafSearchTimer);
       leafSearchTimer = null;
       state.dirty = false;
@@ -556,7 +584,9 @@ window.addEventListener("storage", (event) => {
   if (!state.user) return;
   if (event.key !== storageKey(state.user) || !event.newValue) return;
   try {
-    state.localState = normalizeState({ ...createDefaultState(), ...JSON.parse(event.newValue) });
+    state.localState = rolloverDailySnapshot(
+      normalizeState({ ...createDefaultState(), ...JSON.parse(event.newValue) })
+    );
     renderDashboard();
   } catch {
     // Mantém o estado atual se o payload externo vier inválido.

@@ -4,6 +4,13 @@ import { addDays } from "../utils/dates.js";
 import { average, clamp } from "../utils/calculations.js";
 
 const now = new Date();
+const getLocalDateStamp = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+const todayStamp = getLocalDateStamp(now);
 export const CURRENT_SCHEMA_VERSION = 3;
 
 const cardinalDefinitions = [
@@ -23,6 +30,8 @@ const createLeaf = ({
   currentValue,
   targetValue,
   startValue,
+  previousValue,
+  snapshotDate,
   horizonDays,
   note,
   brothers = [],
@@ -38,6 +47,8 @@ const createLeaf = ({
     currentValue,
     targetValue,
     startValue,
+    previousValue: previousValue ?? currentValue,
+    snapshotDate: snapshotDate ?? todayStamp,
     createdAt: addDays(now, createdAtOffsetDays),
     horizonDays,
     note,
@@ -69,6 +80,8 @@ const createLeaves = ({
       currentValue: value,
       targetValue: target,
       startValue: start,
+      previousValue: spec.previousValue ?? value,
+      snapshotDate: spec.snapshotDate ?? todayStamp,
       horizonDays: spec.horizonDays ?? horizonDays,
       note: spec.note || `${spec.name} dentro de ${nodeName}.`,
       brothers: spec.brothers || [],
@@ -445,6 +458,8 @@ export const normalizeState = (state) => ({
     startValue: clamp(leaf.startValue, 49, 99),
     targetValue: clamp(leaf.targetValue, 49, 99),
     currentValue: clamp(leaf.currentValue, 49, 99),
+    previousValue: clamp(leaf.previousValue ?? leaf.currentValue, 49, 99),
+    snapshotDate: leaf.snapshotDate || todayStamp,
     horizonDays: [7, 30, 90, 180, 365, 1825].includes(Number(leaf.horizonDays))
       ? Number(leaf.horizonDays)
       : 30,
@@ -461,7 +476,10 @@ export const updateLeafValue = (state, leafId, delta) => ({
   ...state,
   baseVariables: state.baseVariables.map((leaf) =>
     leaf.id === leafId
-      ? { ...leaf, currentValue: clamp(leaf.currentValue + delta, 49, 99) }
+      ? {
+          ...leaf,
+          currentValue: clamp(leaf.currentValue + delta, 49, 99),
+        }
       : leaf
   ),
   updatedAt: new Date().toISOString(),
@@ -544,6 +562,8 @@ export const mergeStateWithSeed = (savedState) => {
     currentValue: clamp(leaf.currentValue, 49, 99),
     startValue: clamp(leaf.startValue, 49, 99),
     targetValue: clamp(leaf.targetValue, 49, 99),
+    previousValue: clamp(leaf.previousValue ?? leaf.currentValue, 49, 99),
+    snapshotDate: leaf.snapshotDate || todayStamp,
   }))];
 
   const defaultNextStepId = seedState.nextStep.leafId;
@@ -563,4 +583,21 @@ export const mergeStateWithSeed = (savedState) => {
         seedState.nextStep.text,
     },
   });
+};
+
+export const rolloverDailySnapshot = (state) => {
+  const currentStamp = getLocalDateStamp();
+  if (state?.snapshotDate === currentStamp) {
+    return state;
+  }
+
+  return {
+    ...state,
+    snapshotDate: currentStamp,
+    baseVariables: (state?.baseVariables || []).map((leaf) => ({
+      ...leaf,
+      previousValue: clamp(leaf.currentValue, 49, 99),
+      snapshotDate: currentStamp,
+    })),
+  };
 };
