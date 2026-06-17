@@ -465,10 +465,40 @@ h3 {
 .leaf-item__heading {
   width: 100%;
   align-items: center;
+  gap: 8px;
 }
 
 .leaf-item__heading strong {
   flex: 1;
+}
+
+.node-card__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.node-card__header-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+.node-card__header {
+  flex: 1 1 auto;
+}
+
+.button--tiny {
+  padding: 8px 12px;
+  font-size: 0.78rem;
+}
+
+.button--danger {
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.12);
 }
 
 .icon-button--small {
@@ -534,6 +564,24 @@ h3 {
   gap: 10px;
   flex-wrap: wrap;
   font-size: 0.84rem;
+}
+
+.leaf-item--hidden {
+  opacity: 0.55;
+}
+
+.leaf-item__menu {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.chip--ghost {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  color: var(--muted);
 }
 
 .tone-excellent {

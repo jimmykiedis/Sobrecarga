@@ -1,7 +1,7 @@
 import { renderRadarChart } from "./radarChart.js";
 import { renderStatusBar, statusLabels } from "./moodPanel.js";
 import { renderLeafModal } from "./adviceModal.js";
-import { getLeafDisplayName } from "../services/variableService.js";
+import { getActiveLeaves, getLeafDisplayName } from "../services/variableService.js";
 import { average, progressBetween, formatPercent } from "../utils/calculations.js";
 import { formatDateTime, horizonLabel, horizonOptions, horizonValueToIndex } from "../utils/dates.js";
 import { findLeaves } from "../services/adviceService.js";
@@ -23,13 +23,15 @@ const horizonToneClass = (value) => {
 export const createDashboardMarkup = (state) => {
   const summary = buildReviewSummary(state);
   const openNodeKeys = new Set(state.ui?.openNodeKeys || []);
+  const activeLeaves = getActiveLeaves(state.baseVariables);
+  const showHiddenLeaves = Boolean(state.ui?.showHiddenLeaves);
   const radarItems = state.cardinals.map((item) => ({
     ...item,
     value: item.value,
   }));
 
   const filteredLeaves = findLeaves(
-    state.baseVariables.map((leaf) => ({
+    activeLeaves.map((leaf) => ({
       ...leaf,
       cardinalName: state.cardinals.find((item) => item.id === leaf.cardinalId)?.name || "",
       horizonLabel: horizonLabel(leaf.horizonDays),
@@ -38,7 +40,7 @@ export const createDashboardMarkup = (state) => {
   );
 
   const currentNextLeafRaw =
-    state.baseVariables.find((leaf) => leaf.id === state.nextStep.leafId) || state.baseVariables[0];
+    activeLeaves.find((leaf) => leaf.id === state.nextStep.leafId) || activeLeaves[0];
   const currentNextLeaf = currentNextLeafRaw
     ? {
         ...currentNextLeafRaw,
@@ -47,7 +49,7 @@ export const createDashboardMarkup = (state) => {
       }
     : null;
 
-  const changedLeaves = state.baseVariables
+  const changedLeaves = activeLeaves
     .filter((leaf) => leaf.currentValue !== leaf.startValue)
     .map((leaf) => ({
       ...leaf,
@@ -63,7 +65,7 @@ export const createDashboardMarkup = (state) => {
   const moodEmoji = summary.mood.emoji;
   const buildNodeGroups = (cardinalId) => {
     const nodes = new Map();
-    state.baseVariables
+    activeLeaves
       .filter((leaf) => leaf.cardinalId === cardinalId)
       .forEach((leaf) => {
         const nodeName = leaf.nodeName || "Sem grupo";
@@ -80,9 +82,12 @@ export const createDashboardMarkup = (state) => {
 
     return [...nodes.entries()].map(([nodeName, leaves]) => ({
       nodeName,
+      nodeId: leaves[0]?.nodeId || nodeName,
       key: `${cardinalId}::${nodeName}`,
       isOpen: openNodeKeys.has(`${cardinalId}::${nodeName}`),
-      leaves,
+      leaves: leaves.filter((leaf) => showHiddenLeaves || !leaf.hidden),
+      totalLeaves: leaves.length,
+      hiddenLeaves: leaves.filter((leaf) => leaf.hidden).length,
     }));
   };
 
@@ -214,31 +219,47 @@ export const createDashboardMarkup = (state) => {
                     <p class="eyebrow">Card ${index + 3}</p>
                     <h3>${cardinal.name}</h3>
                   </div>
-                  <span class="chip chip--filled" style="--chip-color:${cardinal.color}">${state.baseVariables.filter((leaf) => leaf.cardinalId === cardinal.id).length} folhas</span>
+                  <span class="chip chip--filled" style="--chip-color:${cardinal.color}">${activeLeaves.filter((leaf) => leaf.cardinalId === cardinal.id).length} folhas</span>
                 </header>
                 <div class="node-stack">
                   ${nodeGroups
                     .map(
                       (node) => `
-                    <section class="node-card">
-                          <button
-                            type="button"
-                            class="node-card__header ${node.isOpen ? "is-open" : ""}"
-                            data-action="toggle-node"
-                            data-node-key="${node.key}"
-                            data-cardinal-id="${cardinal.id}"
-                            aria-expanded="${node.isOpen ? "true" : "false"}"
-                          >
-                            <div>
-                              <h4>${node.nodeName}</h4>
+                        <section class="node-card">
+                          <div class="node-card__header-row">
+                            <button
+                              type="button"
+                              class="node-card__header ${node.isOpen ? "is-open" : ""}"
+                              data-action="toggle-node"
+                              data-node-key="${node.key}"
+                              data-cardinal-id="${cardinal.id}"
+                              aria-expanded="${node.isOpen ? "true" : "false"}"
+                            >
+                              <div>
+                                <h4>${node.nodeName}</h4>
+                              </div>
+                            </button>
+                            <div class="node-card__actions">
+                              <button
+                                type="button"
+                                class="icon-button icon-button--small"
+                                data-action="create-leaf"
+                                data-cardinal-id="${cardinal.id}"
+                                data-node-id="${node.nodeId}"
+                                data-node-name="${node.nodeName}"
+                                aria-label="Criar folha em ${node.nodeName}"
+                              >
+                                +
+                              </button>
+                              <span class="chip">${node.totalLeaves} folhas</span>
+                              ${node.hiddenLeaves > 0 && !showHiddenLeaves ? `<span class="chip chip--ghost">${node.hiddenLeaves} ocultas</span>` : ""}
                             </div>
-                            <span class="chip">${node.leaves.length} folhas</span>
-                          </button>
+                          </div>
                           <div class="leaf-stack ${node.isOpen ? "is-open" : ""}">
                             ${node.leaves
                               .map(
                                 (leaf) => `
-                                  <div class="leaf-item ${leafToneClass(leaf.currentValue)} ${horizonToneClass(leaf.horizonDays)}" data-leaf-id="${leaf.id}">
+                                  <div class="leaf-item ${leafToneClass(leaf.currentValue)} ${horizonToneClass(leaf.horizonDays)} ${leaf.hidden ? "leaf-item--hidden" : ""}" data-leaf-id="${leaf.id}">
                                     <div class="leaf-item__heading">
                                       <button
                                         type="button"
@@ -251,6 +272,25 @@ export const createDashboardMarkup = (state) => {
                                       </button>
                                       <strong>${leaf.name}</strong>
                                     </div>
+                                    <button
+                                      type="button"
+                                      class="icon-button icon-button--small"
+                                      data-action="toggle-leaf-menu"
+                                      data-leaf-id="${leaf.id}"
+                                      aria-label="Abrir ações de ${getLeafDisplayName(leaf)}"
+                                    >
+                                      ⚙
+                                    </button>
+                                    ${state.ui?.openLeafMenuId === leaf.id ? `
+                                      <div class="leaf-item__menu">
+                                        <button type="button" class="button button--ghost button--tiny" data-action="toggle-leaf-hidden" data-leaf-id="${leaf.id}">
+                                          ${leaf.hidden ? "Mostrar" : "Ocultar"}
+                                        </button>
+                                        <button type="button" class="button button--ghost button--tiny button--danger" data-action="delete-leaf" data-leaf-id="${leaf.id}">
+                                          Excluir
+                                        </button>
+                                      </div>
+                                    ` : ""}
                                     <div class="leaf-value-box">
                                       <button type="button" class="stepper-button stepper-button--danger stepper-button--tiny" data-action="leaf-delta" data-leaf-id="${leaf.id}" data-delta="-1">−</button>
                                       <div class="leaf-value-box__value" data-leaf-value="${leaf.id}">${leaf.currentValue}</div>
@@ -275,6 +315,7 @@ export const createDashboardMarkup = (state) => {
                                 `
                               )
                               .join("")}
+                            ${node.leaves.length === 0 ? `<p class="empty-state empty-state--compact">Nenhuma folha visível neste nó.</p>` : ""}
                           </div>
                         </section>
                       `
@@ -433,7 +474,7 @@ export const createDashboardMarkup = (state) => {
                   <tbody>
                     ${state.cardinals
                       .map((cardinal) => {
-                        const related = state.baseVariables.filter((leaf) => leaf.cardinalId === cardinal.id);
+                        const related = activeLeaves.filter((leaf) => leaf.cardinalId === cardinal.id);
                         return `
                           <tr>
                             <td data-label="Cardinal">
@@ -462,6 +503,13 @@ export const createDashboardMarkup = (state) => {
           ${state.ui?.saving ? "disabled" : ""}
         >
           ${state.ui?.saving ? "Salvando..." : "Salvar"}
+        </button>
+        <button
+          type="button"
+          class="button button--ghost"
+          data-action="toggle-hidden-leaves"
+        >
+          ${state.showHiddenLeaves ? "Ocultar folhas" : "Mostrar folhas"}
         </button>
       </footer>
 

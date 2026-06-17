@@ -11,7 +11,7 @@ const getLocalDateStamp = (date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 const todayStamp = getLocalDateStamp(now);
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 
 const cardinalDefinitions = [
   { id: "identidade", name: "Identidade", color: "#f59e0b", icon: "◌" },
@@ -26,6 +26,25 @@ export const getLeafDisplayName = (leaf) => leaf?.customName?.trim() || leaf?.na
 const normalizeLeafCustomName = (value) => {
   const normalized = String(value || "").trim();
   return normalized || undefined;
+};
+
+const normalizeLeafBoolean = (value) => Boolean(value);
+
+const isDeletedLeaf = (leaf) => Boolean(leaf?.deleted);
+
+const isIncludedInCalculations = (leaf) => !isDeletedLeaf(leaf);
+
+export const getActiveLeaves = (baseVariables = []) => baseVariables.filter(isIncludedInCalculations);
+
+const createLeafId = (cardinalId, nodeId, name) => {
+  const slug = String(name || "nova-folha")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 24);
+  const randomPart = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID().slice(0, 8) : `${Date.now()}`;
+  return `${cardinalId}-${nodeId}-${slug || "folha"}-${randomPart}`;
 };
 
 const createLeaf = ({
@@ -43,6 +62,8 @@ const createLeaf = ({
   note,
   brothers = [],
   archived = false,
+  hidden = false,
+  deleted = false,
   createdAtOffsetDays = -30,
 }) =>
   new BaseVariable({
@@ -61,6 +82,8 @@ const createLeaf = ({
     note,
     brothers,
     archived,
+    hidden,
+    deleted,
   });
 
 const createLeaves = ({
@@ -93,6 +116,8 @@ const createLeaves = ({
       note: spec.note || `${spec.name} dentro de ${nodeName}.`,
       brothers: spec.brothers || [],
       archived: spec.archived || false,
+      hidden: spec.hidden || false,
+      deleted: spec.deleted || false,
       createdAtOffsetDays: spec.createdAtOffsetDays ?? -30 - index * 7,
     });
   });
@@ -380,7 +405,9 @@ const leafSeed = [
 ];
 
 function calculateCardinalAverage(cardinalId, leaves) {
-  const values = leaves.filter((leaf) => leaf.cardinalId === cardinalId).map((leaf) => leaf.currentValue);
+  const values = getActiveLeaves(leaves)
+    .filter((leaf) => leaf.cardinalId === cardinalId)
+    .map((leaf) => leaf.currentValue);
   if (!values.length) return 49;
   return Math.round(average(values));
 }
@@ -397,7 +424,7 @@ function buildCardinalsFromLeaves(leaves) {
 function adjustCardinalLeaves(leaves, cardinalId, delta) {
   const relatedIndexes = leaves
     .map((leaf, index) => (leaf.cardinalId === cardinalId ? index : -1))
-    .filter((index) => index !== -1);
+    .filter((index) => index !== -1 && isIncludedInCalculations(leaves[index]));
 
   if (!relatedIndexes.length || delta === 0) return leaves;
 
@@ -436,7 +463,12 @@ export const createDefaultState = () => {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     cardinals,
-    baseVariables: leafSeed.map((item) => ({ ...item, defaultName: item.name })),
+    baseVariables: leafSeed.map((item) => ({
+      ...item,
+      defaultName: item.name,
+      hidden: Boolean(item.hidden),
+      deleted: Boolean(item.deleted),
+    })),
     weeklyReview: {
       moodValue: 0,
       moodLabel: "Neutro",
@@ -448,6 +480,7 @@ export const createDefaultState = () => {
       text: leafSeed[0].name,
     },
     showArchive: false,
+    showHiddenLeaves: false,
     leafSearchQuery: "",
     modalOpen: false,
     updatedAt: new Date().toISOString(),
@@ -464,6 +497,8 @@ export const normalizeState = (state) => ({
     ...leaf,
     defaultName: leaf.defaultName || leaf.name || "",
     customName: normalizeLeafCustomName(leaf.customName),
+    hidden: normalizeLeafBoolean(leaf.hidden),
+    deleted: normalizeLeafBoolean(leaf.deleted),
     name:
       normalizeLeafCustomName(leaf.customName) ||
       leaf.name ||
@@ -478,6 +513,7 @@ export const normalizeState = (state) => ({
       ? Number(leaf.horizonDays)
       : 30,
   })),
+  showHiddenLeaves: normalizeLeafBoolean(state.showHiddenLeaves),
 });
 
 export const updateCardinalValue = (state, cardinalId, delta) => ({
@@ -489,7 +525,7 @@ export const updateCardinalValue = (state, cardinalId, delta) => ({
 export const updateLeafValue = (state, leafId, delta) => ({
   ...state,
   baseVariables: state.baseVariables.map((leaf) =>
-    leaf.id === leafId
+    leaf.id === leafId && isIncludedInCalculations(leaf)
       ? {
           ...leaf,
           currentValue: clamp(leaf.currentValue + delta, 49, 99),
@@ -502,7 +538,7 @@ export const updateLeafValue = (state, leafId, delta) => ({
 export const updateLeafHorizon = (state, leafId, horizonDays) => ({
   ...state,
   baseVariables: state.baseVariables.map((leaf) =>
-    leaf.id === leafId
+    leaf.id === leafId && isIncludedInCalculations(leaf)
       ? { ...leaf, horizonDays: Number(horizonDays) }
       : leaf
   ),
@@ -520,6 +556,73 @@ export const setLeafCustomName = (state, leafId, customName) => ({
         }
       : leaf
   ),
+  updatedAt: new Date().toISOString(),
+});
+
+export const createLeafInNode = (state, { cardinalId, nodeId, nodeName, name }) => {
+  const activeLeaves = getActiveLeaves(state.baseVariables).filter((leaf) => leaf.cardinalId === cardinalId);
+  const seedValue = activeLeaves.length
+    ? Math.round(average(activeLeaves.map((leaf) => leaf.currentValue)))
+    : 74;
+  const currentValue = clamp(seedValue, 49, 99);
+  const newLeafName = String(name || "").trim();
+  if (!newLeafName) return state;
+
+  const leaf = createLeaf({
+    id: createLeafId(cardinalId, nodeId, newLeafName),
+    cardinalId,
+    nodeId,
+    nodeName,
+    name: newLeafName,
+    currentValue,
+    targetValue: clamp(currentValue + 8, 49, 99),
+    startValue: clamp(currentValue - 6, 49, 99),
+    previousValue: currentValue,
+    horizonDays: 90,
+    note: `${newLeafName} dentro de ${nodeName}.`,
+  });
+
+  return {
+    ...state,
+    baseVariables: [...state.baseVariables, { ...leaf, defaultName: leaf.name }],
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+export const toggleLeafHidden = (state, leafId) => ({
+  ...state,
+  baseVariables: state.baseVariables.map((leaf) =>
+    leaf.id === leafId
+      ? {
+          ...leaf,
+          hidden: !normalizeLeafBoolean(leaf.hidden),
+        }
+      : leaf
+  ),
+  updatedAt: new Date().toISOString(),
+});
+
+export const deleteLeaf = (state, leafId) => ({
+  ...state,
+  baseVariables: state.baseVariables.map((leaf) =>
+    leaf.id === leafId
+      ? {
+          ...leaf,
+          deleted: true,
+          hidden: false,
+        }
+      : leaf
+  ),
+  nextStep:
+    state.nextStep?.leafId === leafId
+      ? (() => {
+          const fallbackLeaf = getActiveLeaves(state.baseVariables).find((leaf) => leaf.id !== leafId) || null;
+          return {
+            leafId: fallbackLeaf?.id || "",
+            text: getLeafDisplayName(fallbackLeaf) || "Definir",
+          };
+        })()
+      : state.nextStep,
   updatedAt: new Date().toISOString(),
 });
 
@@ -566,11 +669,16 @@ export const toggleArchive = (state) => ({
   showArchive: !state.showArchive,
 });
 
+export const toggleShowHiddenLeaves = (state) => ({
+  ...state,
+  showHiddenLeaves: !state.showHiddenLeaves,
+});
+
 export const deriveCardinalValues = (baseVariables) => buildCardinalsFromLeaves(baseVariables);
 
 export const mergeStateWithSeed = (savedState) => {
   const seedState = createDefaultState();
-  if (savedState?.schemaVersion !== CURRENT_SCHEMA_VERSION) {
+  if (savedState?.schemaVersion > CURRENT_SCHEMA_VERSION) {
     return seedState;
   }
 
@@ -580,7 +688,7 @@ export const mergeStateWithSeed = (savedState) => {
   const mergedLeaves = seedState.baseVariables.map((seedLeaf) => {
     const savedLeaf = savedLeaves.get(seedLeaf.id);
     if (!savedLeaf) {
-      return { ...seedLeaf, defaultName: seedLeaf.name };
+      return { ...seedLeaf, defaultName: seedLeaf.name, hidden: false, deleted: false };
     }
 
     const savedCustomName = normalizeLeafCustomName(savedLeaf.customName);
@@ -593,6 +701,8 @@ export const mergeStateWithSeed = (savedState) => {
       defaultName: seedLeaf.name,
       name: migratedCustomName || seedLeaf.name,
       customName: migratedCustomName,
+      hidden: normalizeLeafBoolean(savedLeaf.hidden),
+      deleted: normalizeLeafBoolean(savedLeaf.deleted),
     };
   });
   const appendedSavedLeaves = (savedState?.baseVariables || []).filter(
@@ -604,6 +714,8 @@ export const mergeStateWithSeed = (savedState) => {
     customName: normalizeLeafCustomName(leaf.customName),
     defaultName: leaf.defaultName || leaf.name,
     name: normalizeLeafCustomName(leaf.customName) || leaf.name,
+    hidden: normalizeLeafBoolean(leaf.hidden),
+    deleted: normalizeLeafBoolean(leaf.deleted),
     currentValue: clamp(leaf.currentValue, 49, 99),
     startValue: clamp(leaf.startValue, 49, 99),
     targetValue: clamp(leaf.targetValue, 49, 99),
@@ -615,11 +727,13 @@ export const mergeStateWithSeed = (savedState) => {
     customName: normalizeLeafCustomName(leaf.customName),
     defaultName: leaf.defaultName || leaf.name,
     name: normalizeLeafCustomName(leaf.customName) || leaf.name,
+    hidden: normalizeLeafBoolean(leaf.hidden),
+    deleted: normalizeLeafBoolean(leaf.deleted),
   }));
 
   const defaultNextStepId = seedState.nextStep.leafId;
   const savedNextStepId = savedState?.nextStep?.leafId;
-  const nextStepLeafId = normalizedBaseVariables.some((leaf) => leaf.id === savedNextStepId)
+  const nextStepLeafId = getActiveLeaves(normalizedBaseVariables).some((leaf) => leaf.id === savedNextStepId)
     ? savedNextStepId
     : defaultNextStepId;
 

@@ -11,6 +11,12 @@ import {
   setWeeklyReviewNote,
   selectNextStep,
   setLeafSearchQuery,
+  createLeafInNode,
+  toggleLeafHidden,
+  deleteLeaf,
+  toggleShowHiddenLeaves,
+  getActiveLeaves,
+  getLeafDisplayName,
   toggleModal,
   toggleArchive,
   rolloverDailySnapshot,
@@ -51,6 +57,7 @@ let dashboardEventsBound = false;
 let leafSearchTimer = null;
 let scrollTopSyncRaf = null;
 let scrollTopBehaviorBound = false;
+let openLeafMenuId = null;
 const expandedNodeKeys = new Set();
 
 const cloneState = (value) => JSON.parse(JSON.stringify(value));
@@ -154,7 +161,9 @@ const buildDashboardMarkup = () =>
       syncMessage: state.syncMessage,
       saving: state.saving,
       lastSavedAt: state.lastSavedAt,
+      showHiddenLeaves: state.localState.showHiddenLeaves,
       openNodeKeys: [...expandedNodeKeys],
+      openLeafMenuId,
     },
   });
 
@@ -213,9 +222,10 @@ const bindScrollTopButtonBehavior = () => {
 
 const refreshSummaryBindings = () => {
   const summary = buildReviewSummary(state.localState);
+  const activeLeaves = getActiveLeaves(state.localState.baseVariables);
   const currentNextLeaf =
-    state.localState.baseVariables.find((leaf) => leaf.id === state.localState.nextStep.leafId) ||
-    state.localState.baseVariables[0];
+    activeLeaves.find((leaf) => leaf.id === state.localState.nextStep.leafId) ||
+    activeLeaves[0];
 
   const setText = (selector, value) => {
     const element = app.querySelector(selector);
@@ -452,6 +462,18 @@ const openNodesForCardinal = (cardinalId) => {
   collectNodeKeysForCardinal(cardinalId).forEach((key) => expandedNodeKeys.add(key));
 };
 
+const createLeafForNode = ({ cardinalId, nodeId, nodeName }) => {
+  const name = window.prompt("Nome da nova folha:");
+  if (name === null) return;
+
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return;
+
+  openNodesForCardinal(cardinalId);
+  openLeafMenuId = null;
+  setLocalState((current) => createLeafInNode(current, { cardinalId, nodeId, nodeName, name: trimmed }));
+};
+
 const renameLeaf = (leafId) => {
   const leaf = state.localState.baseVariables.find((item) => item.id === leafId);
   if (!leaf) return;
@@ -461,6 +483,27 @@ const renameLeaf = (leafId) => {
   if (nextName === null) return;
 
   setLocalState((current) => setLeafCustomName(current, leafId, nextName));
+};
+
+const toggleLeafMenu = (leafId) => {
+  openLeafMenuId = openLeafMenuId === leafId ? null : leafId;
+  renderDashboard();
+};
+
+const hideLeaf = (leafId) => {
+  openLeafMenuId = null;
+  setLocalState((current) => toggleLeafHidden(current, leafId));
+};
+
+const removeLeaf = (leafId) => {
+  const leaf = state.localState.baseVariables.find((item) => item.id === leafId);
+  if (!leaf) return;
+
+  const confirmed = window.confirm(`Excluir a folha "${getLeafDisplayName(leaf)}"? Ela deixará de participar dos cálculos.`);
+  if (!confirmed) return;
+
+  openLeafMenuId = null;
+  setLocalState((current) => deleteLeaf(current, leafId));
 };
 
 function handleDashboardClick(event) {
@@ -512,6 +555,30 @@ function handleDashboardClick(event) {
     return;
   }
 
+  if (action === "create-leaf") {
+    createLeafForNode({
+      cardinalId: target.dataset.cardinalId,
+      nodeId: target.dataset.nodeId,
+      nodeName: target.dataset.nodeName,
+    });
+    return;
+  }
+
+  if (action === "toggle-leaf-menu") {
+    toggleLeafMenu(target.dataset.leafId);
+    return;
+  }
+
+  if (action === "toggle-leaf-hidden") {
+    hideLeaf(target.dataset.leafId);
+    return;
+  }
+
+  if (action === "delete-leaf") {
+    removeLeaf(target.dataset.leafId);
+    return;
+  }
+
   if (action === "rename-leaf") {
     renameLeaf(target.dataset.leafId);
     return;
@@ -533,6 +600,11 @@ function handleDashboardClick(event) {
 
   if (action === "toggle-archive") {
     setLocalState((current) => toggleArchive(current));
+  }
+
+  if (action === "toggle-hidden-leaves") {
+    setLocalState((current) => toggleShowHiddenLeaves(current));
+    return;
   }
 
   if (action === "toggle-node") {
@@ -624,6 +696,11 @@ function handleDashboardChange(event) {
 
 function handleDashboardKeydown(event) {
   if (event.key !== "Escape") return;
+  if (openLeafMenuId) {
+    openLeafMenuId = null;
+    renderDashboard();
+    return;
+  }
   const modal = app.querySelector(".modal.is-open");
   if (modal) {
     setLocalState((current) => toggleModal(current, false));
@@ -635,6 +712,7 @@ const setupAuthListener = async () => {
     await onAuthStateChanged((user) => {
       if (user) {
         expandedNodeKeys.clear();
+        openLeafMenuId = null;
         state.user = { uid: user.uid, email: user.email };
         state.loading = true;
         state.authReady = true;
@@ -653,6 +731,7 @@ const setupAuthListener = async () => {
       state.loading = false;
       state.localState = createDefaultState();
       expandedNodeKeys.clear();
+      openLeafMenuId = null;
       clearTimeout(leafSearchTimer);
       leafSearchTimer = null;
       state.dirty = false;

@@ -2,8 +2,9 @@ import { average, progressBetween } from "../utils/calculations.js";
 import { getMoodFromAverageValue } from "./moodService.js";
 
 export const buildReviewSummary = (state) => {
+  const activeLeaves = state.baseVariables.filter((item) => !item.deleted);
   const cardinalValues = state.cardinals.map((item) => item.value);
-  const leafChanges = state.baseVariables.filter(
+  const leafChanges = activeLeaves.filter(
     (item) => item.currentValue !== item.startValue
   );
   const mood = getMoodFromAverageValue(cardinalValues);

@@ -15,6 +15,8 @@ export class BaseVariable {
     note = "",
     brothers = [],
     archived = false,
+    hidden = false,
+    deleted = false,
   }) {
     this.id = id;
     this.cardinalId = cardinalId;
@@ -31,5 +33,7 @@ export class BaseVariable {
     this.note = note;
     this.brothers = brothers;
     this.archived = archived;
+    this.hidden = hidden;
+    this.deleted = deleted;
   }
 }

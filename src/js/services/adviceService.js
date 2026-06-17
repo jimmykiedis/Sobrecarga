@@ -3,6 +3,7 @@ import { getLeafDisplayName } from "./variableService.js";
 export const findLeaves = (baseVariables, query = "") => {
   const normalized = query.trim().toLowerCase();
   return [...baseVariables]
+    .filter((leaf) => !leaf.deleted)
     .filter((leaf) => {
       if (!normalized) return true;
       const displayName = getLeafDisplayName(leaf).toLowerCase();
