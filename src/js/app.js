@@ -22,7 +22,9 @@ import {
   saveUserWorkspace,
 } from "./firebase/firebase.js";
 import { createDashboardMarkup } from "./ui/dashboard.js";
+import { renderLeafResults } from "./ui/adviceModal.js";
 import { getMoodFromAverageValue } from "./services/moodService.js";
+import { findLeaves } from "./services/adviceService.js";
 import { average, formatPercent } from "./utils/calculations.js";
 import { formatDateTime, horizonIndexToValue, horizonLabel, horizonValueToIndex } from "./utils/dates.js";
 import { buildReviewSummary } from "./services/reviewService.js";
@@ -281,6 +283,29 @@ const refreshLeafItem = (leafId) => {
   }
 };
 
+const refreshLeafModalResults = () => {
+  const modal = app.querySelector(".modal.is-open");
+  if (!modal) return;
+
+  const results = modal.querySelector(".modal__results");
+  if (!results) return;
+
+  const leaves = findLeaves(
+    state.localState.baseVariables.map((leaf) => ({
+      ...leaf,
+      cardinalName: state.localState.cardinals.find((item) => item.id === leaf.cardinalId)?.name || "",
+      horizonLabel: horizonLabel(leaf.horizonDays),
+    })),
+    state.localState.leafSearchQuery
+  );
+
+  results.innerHTML = renderLeafResults({
+    leaves,
+    query: state.localState.leafSearchQuery,
+    selectedLeafId: state.localState.nextStep.leafId,
+  });
+};
+
 const setLocalStatePartial = (updater, partialSelectors) => {
   state.localState = rolloverDailySnapshot(normalizeState(updater(cloneState(state.localState))));
   syncDerivedState();
@@ -514,9 +539,9 @@ function handleDashboardInput(event) {
     const query = field.value;
     state.localState = setLeafSearchQuery(cloneState(state.localState), query);
     clearTimeout(leafSearchTimer);
+    refreshLeafModalResults();
     leafSearchTimer = setTimeout(() => {
-      syncDerivedState();
-      renderDashboard();
+      saveState();
     }, 120);
     return;
   }

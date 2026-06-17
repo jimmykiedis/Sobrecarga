@@ -5,6 +5,8 @@ let firebaseFirestorePromise = null;
 
 const hasConfig = Boolean(FIREBASE_CONFIG?.apiKey && FIREBASE_CONFIG?.projectId);
 
+const toFirestoreSafeData = (value) => JSON.parse(JSON.stringify(value));
+
 async function loadFirebaseAuth() {
   if (!hasConfig) {
     throw new Error("Configuração do Firebase ausente.");
@@ -79,7 +81,7 @@ export async function loadUserWorkspace(uid) {
 export async function saveUserWorkspace(uid, data) {
   const { firestore, firestoreModule } = await loadFirebaseFirestore();
   const docRef = firestoreModule.doc(firestore, "users", uid, "workspace", "main");
-  await firestoreModule.setDoc(docRef, data, { merge: true });
+  await firestoreModule.setDoc(docRef, toFirestoreSafeData(data), { merge: true });
 }
 
 export async function listenUserWorkspace(uid, callback) {
@@ -96,8 +98,8 @@ export async function ensureUserWorkspace(uid, seedData) {
   const snapshot = await firestoreModule.getDoc(docRef);
 
   if (!snapshot.exists()) {
-    await firestoreModule.setDoc(docRef, seedData);
-    return seedData;
+    await firestoreModule.setDoc(docRef, toFirestoreSafeData(seedData));
+    return toFirestoreSafeData(seedData);
   }
 
   return snapshot.data();

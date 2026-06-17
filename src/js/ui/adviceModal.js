@@ -1,5 +1,5 @@
-export const renderLeafModal = ({ leaves, query, selectedLeafId }) => {
-  const rows = leaves.length
+export const renderLeafResults = ({ leaves, query, selectedLeafId }) =>
+  leaves.length
     ? leaves
         .map(
           (leaf) => `
@@ -11,7 +11,7 @@ export const renderLeafModal = ({ leaves, query, selectedLeafId }) => {
             >
               <div>
                 <strong>${leaf.name}</strong>
-                <span>${leaf.cardinalName} • ${leaf.nodeName || "Sem nó"}</span>
+                <span>${leaf.cardinalName} \u2022 ${leaf.nodeName || "Sem n\u00F3"}</span>
               </div>
               <div class="leaf-result__meta">
                 <span>Atual: ${leaf.currentValue}</span>
@@ -23,22 +23,25 @@ export const renderLeafModal = ({ leaves, query, selectedLeafId }) => {
         .join("")
     : `<p class="empty-state">Nenhuma folha encontrada para "${query}".</p>`;
 
+export const renderLeafModal = ({ leaves, query, selectedLeafId }) => {
+  const rows = renderLeafResults({ leaves, query, selectedLeafId });
+
   return `
     <div class="modal is-open" role="dialog" aria-modal="true" aria-labelledby="leaf-modal-title">
       <div class="modal__backdrop" data-action="close-modal"></div>
       <div class="modal__panel">
         <header class="modal__header">
           <div>
-            <p class="eyebrow">Próximo passo concreto</p>
+            <p class="eyebrow">Pr\u00F3ximo passo concreto</p>
             <h3 id="leaf-modal-title">Buscar folhas</h3>
           </div>
-          <button type="button" class="icon-button" data-action="close-modal" aria-label="Fechar modal">×</button>
+          <button type="button" class="icon-button" data-action="close-modal" aria-label="Fechar modal">x</button>
         </header>
         <label class="field">
           <span>Procurar folhas</span>
           <input
             type="search"
-            placeholder="Digite o nome, cardinal ou observação"
+            placeholder="Digite o nome, cardinal ou observa\u00E7\u00E3o"
             value="${query.replace(/"/g, "&quot;")}"
             data-field="leaf-search"
           />
