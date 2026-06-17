@@ -1,3 +1,5 @@
+import { getLeafDisplayName } from "../services/variableService.js";
+
 export const renderLeafResults = ({ leaves, query, selectedLeafId }) =>
   leaves.length
     ? leaves
@@ -10,7 +12,7 @@ export const renderLeafResults = ({ leaves, query, selectedLeafId }) =>
               data-leaf-id="${leaf.id}"
             >
               <div>
-                <strong>${leaf.name}</strong>
+                <strong>${getLeafDisplayName(leaf)}</strong>
                 <span>${leaf.cardinalName} \u2022 ${leaf.nodeName || "Sem n\u00F3"}</span>
               </div>
               <div class="leaf-result__meta">

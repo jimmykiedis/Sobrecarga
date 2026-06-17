@@ -21,6 +21,13 @@ const cardinalDefinitions = [
   { id: "profissional", name: "Profissional", color: "#0ea5e9", icon: "◓" },
 ];
 
+export const getLeafDisplayName = (leaf) => leaf?.customName?.trim() || leaf?.name || "";
+
+const normalizeLeafCustomName = (value) => {
+  const normalized = String(value || "").trim();
+  return normalized || undefined;
+};
+
 const createLeaf = ({
   id,
   cardinalId,
@@ -125,9 +132,9 @@ const leafSeed = [
     currentValue: 70,
     targetValue: 86,
     items: [
-      { id: "identidade-90-dias", name: "90 Dias", horizonDays: 90, targetValue: 78 },
-      { id: "identidade-1-ano", name: "1 Ano", horizonDays: 365, targetValue: 82 },
-      { id: "identidade-5-anos", name: "5 Anos", horizonDays: 1825, targetValue: 88 },
+      { id: "identidade-90-dias", name: "Clareza de Valores", horizonDays: 90, targetValue: 78 },
+      { id: "identidade-1-ano", name: "Direção de Vida", horizonDays: 365, targetValue: 82 },
+      { id: "identidade-5-anos", name: "Legado Pessoal", horizonDays: 1825, targetValue: 88 },
     ],
   }),
   ...createLeaves({
@@ -429,7 +436,7 @@ export const createDefaultState = () => {
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
     cardinals,
-    baseVariables: leafSeed.map((item) => ({ ...item })),
+    baseVariables: leafSeed.map((item) => ({ ...item, defaultName: item.name })),
     weeklyReview: {
       moodValue: 0,
       moodLabel: "Neutro",
@@ -455,6 +462,13 @@ export const normalizeState = (state) => ({
   })),
   baseVariables: (state.baseVariables || []).map((leaf) => ({
     ...leaf,
+    defaultName: leaf.defaultName || leaf.name || "",
+    customName: normalizeLeafCustomName(leaf.customName),
+    name:
+      normalizeLeafCustomName(leaf.customName) ||
+      leaf.name ||
+      leaf.defaultName ||
+      "",
     startValue: clamp(leaf.startValue, 49, 99),
     targetValue: clamp(leaf.targetValue, 49, 99),
     currentValue: clamp(leaf.currentValue, 49, 99),
@@ -495,6 +509,20 @@ export const updateLeafHorizon = (state, leafId, horizonDays) => ({
   updatedAt: new Date().toISOString(),
 });
 
+export const setLeafCustomName = (state, leafId, customName) => ({
+  ...state,
+  baseVariables: state.baseVariables.map((leaf) =>
+    leaf.id === leafId
+      ? {
+          ...leaf,
+          customName: normalizeLeafCustomName(customName),
+          name: normalizeLeafCustomName(customName) || leaf.defaultName || leaf.name,
+        }
+      : leaf
+  ),
+  updatedAt: new Date().toISOString(),
+});
+
 export const setWeeklyReviewScore = (state, score) => ({
   ...state,
   weeklyReview: {
@@ -517,7 +545,7 @@ export const selectNextStep = (state, leaf) => ({
   ...state,
   nextStep: {
     leafId: leaf.id,
-    text: leaf.name,
+    text: getLeafDisplayName(leaf),
   },
   modalOpen: false,
   updatedAt: new Date().toISOString(),
@@ -551,7 +579,21 @@ export const mergeStateWithSeed = (savedState) => {
   );
   const mergedLeaves = seedState.baseVariables.map((seedLeaf) => {
     const savedLeaf = savedLeaves.get(seedLeaf.id);
-    return savedLeaf ? { ...seedLeaf, ...savedLeaf } : seedLeaf;
+    if (!savedLeaf) {
+      return { ...seedLeaf, defaultName: seedLeaf.name };
+    }
+
+    const savedCustomName = normalizeLeafCustomName(savedLeaf.customName);
+    const migratedCustomName =
+      savedCustomName || (savedLeaf.name && savedLeaf.name !== seedLeaf.name ? savedLeaf.name : undefined);
+
+    return {
+      ...seedLeaf,
+      ...savedLeaf,
+      defaultName: seedLeaf.name,
+      name: migratedCustomName || seedLeaf.name,
+      customName: migratedCustomName,
+    };
   });
   const appendedSavedLeaves = (savedState?.baseVariables || []).filter(
     (leaf) => !mergedLeaves.some((item) => item.id === leaf.id)
@@ -559,27 +601,36 @@ export const mergeStateWithSeed = (savedState) => {
 
   const mergedBaseVariables = [...mergedLeaves, ...appendedSavedLeaves.map((leaf) => ({
     ...leaf,
+    customName: normalizeLeafCustomName(leaf.customName),
+    defaultName: leaf.defaultName || leaf.name,
+    name: normalizeLeafCustomName(leaf.customName) || leaf.name,
     currentValue: clamp(leaf.currentValue, 49, 99),
     startValue: clamp(leaf.startValue, 49, 99),
     targetValue: clamp(leaf.targetValue, 49, 99),
     previousValue: clamp(leaf.previousValue ?? leaf.currentValue, 49, 99),
     snapshotDate: leaf.snapshotDate || todayStamp,
   }))];
+  const normalizedBaseVariables = mergedBaseVariables.map((leaf) => ({
+    ...leaf,
+    customName: normalizeLeafCustomName(leaf.customName),
+    defaultName: leaf.defaultName || leaf.name,
+    name: normalizeLeafCustomName(leaf.customName) || leaf.name,
+  }));
 
   const defaultNextStepId = seedState.nextStep.leafId;
   const savedNextStepId = savedState?.nextStep?.leafId;
-  const nextStepLeafId = mergedBaseVariables.some((leaf) => leaf.id === savedNextStepId)
+  const nextStepLeafId = normalizedBaseVariables.some((leaf) => leaf.id === savedNextStepId)
     ? savedNextStepId
     : defaultNextStepId;
 
   return normalizeState({
     ...seedState,
     ...savedState,
-    baseVariables: mergedBaseVariables,
+    baseVariables: normalizedBaseVariables,
     nextStep: {
       leafId: nextStepLeafId,
       text:
-        mergedBaseVariables.find((leaf) => leaf.id === nextStepLeafId)?.name ||
+        getLeafDisplayName(normalizedBaseVariables.find((leaf) => leaf.id === nextStepLeafId)) ||
         seedState.nextStep.text,
     },
   });

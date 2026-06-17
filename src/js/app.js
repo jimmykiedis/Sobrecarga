@@ -6,6 +6,7 @@ import {
   updateCardinalValue,
   updateLeafValue,
   updateLeafHorizon,
+  setLeafCustomName,
   setWeeklyReviewScore,
   setWeeklyReviewNote,
   selectNextStep,
@@ -451,6 +452,17 @@ const openNodesForCardinal = (cardinalId) => {
   collectNodeKeysForCardinal(cardinalId).forEach((key) => expandedNodeKeys.add(key));
 };
 
+const renameLeaf = (leafId) => {
+  const leaf = state.localState.baseVariables.find((item) => item.id === leafId);
+  if (!leaf) return;
+
+  const currentName = leaf.customName || leaf.name || "";
+  const nextName = window.prompt("Digite o novo nome da folha:", currentName);
+  if (nextName === null) return;
+
+  setLocalState((current) => setLeafCustomName(current, leafId, nextName));
+};
+
 function handleDashboardClick(event) {
   const target = event.target.closest("[data-action]");
   if (!target) return;
@@ -497,6 +509,11 @@ function handleDashboardClick(event) {
 
   if (action === "open-modal") {
     setLocalState((current) => toggleModal(current, true));
+    return;
+  }
+
+  if (action === "rename-leaf") {
+    renameLeaf(target.dataset.leafId);
     return;
   }
 

@@ -464,7 +464,21 @@ h3 {
 
 .leaf-item__heading {
   width: 100%;
-  align-items: flex-start;
+  align-items: center;
+}
+
+.leaf-item__heading strong {
+  flex: 1;
+}
+
+.icon-button--small {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  padding: 0;
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .leaf-value-box {

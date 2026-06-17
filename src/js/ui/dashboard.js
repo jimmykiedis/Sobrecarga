@@ -1,6 +1,7 @@
 import { renderRadarChart } from "./radarChart.js";
 import { renderStatusBar, statusLabels } from "./moodPanel.js";
 import { renderLeafModal } from "./adviceModal.js";
+import { getLeafDisplayName } from "../services/variableService.js";
 import { average, progressBetween, formatPercent } from "../utils/calculations.js";
 import { formatDateTime, horizonLabel, horizonOptions, horizonValueToIndex } from "../utils/dates.js";
 import { findLeaves } from "../services/adviceService.js";
@@ -239,6 +240,15 @@ export const createDashboardMarkup = (state) => {
                                 (leaf) => `
                                   <div class="leaf-item ${leafToneClass(leaf.currentValue)} ${horizonToneClass(leaf.horizonDays)}" data-leaf-id="${leaf.id}">
                                     <div class="leaf-item__heading">
+                                      <button
+                                        type="button"
+                                        class="icon-button icon-button--small"
+                                        data-action="rename-leaf"
+                                        data-leaf-id="${leaf.id}"
+                                        aria-label="Renomear ${getLeafDisplayName(leaf)}"
+                                      >
+                                        ✎
+                                      </button>
                                       <strong>${leaf.name}</strong>
                                     </div>
                                     <div class="leaf-value-box">
