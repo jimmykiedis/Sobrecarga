@@ -1,4 +1,4 @@
-import { clamp, valueToPercent } from "../utils/calculations.js";
+import { average, clamp } from "../utils/calculations.js";
 import { horizonLabel, horizonValueToIndex } from "../utils/dates.js";
 import { getActiveLeaves, getLeafDisplayName } from "../services/variableService.js";
 
@@ -13,7 +13,7 @@ const HORIZON_COLORS = [
 
 const ORG_LAYOUT = {
   width: 1760,
-  topPadding: 140,
+  topPadding: 108,
   root: { x: 60, width: 170, height: 76 },
   cardinal: { x: 360, width: 220, height: 70 },
   node: { x: 700, width: 230, height: 60 },
@@ -22,6 +22,65 @@ const ORG_LAYOUT = {
   nodeGap: 26,
   cardinalGap: 48,
 };
+
+const ORGANOGRAM_INLINE_STYLES = `
+  .organogram-title,
+  .organogram-root__name,
+  .organogram-cardinal__name,
+  .organogram-node__name,
+  .organogram-leaf__name {
+    fill: #f8fafc;
+    font-family: "Segoe UI Variable", "Aptos", "Trebuchet MS", sans-serif;
+    font-weight: 700;
+  }
+
+  .organogram-title {
+    font-size: 1.2rem;
+    letter-spacing: 0.01em;
+  }
+
+  .organogram-subtitle,
+  .organogram-root__label,
+  .organogram-cardinal__meta,
+  .organogram-node__meta,
+  .organogram-leaf__meta,
+  .organogram-leaf__pct {
+    fill: rgba(226, 232, 240, 0.76);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .organogram-root__box {
+    fill: rgba(245, 158, 11, 0.1);
+    stroke: rgba(245, 158, 11, 0.42);
+    stroke-width: 1.5;
+  }
+
+  .organogram-cardinal__box,
+  .organogram-node__box,
+  .organogram-leaf__box {
+    fill: rgba(255, 255, 255, 0.045);
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 1.2;
+  }
+
+  .organogram-cardinal__stripe {
+    opacity: 0.92;
+  }
+
+  .organogram-link {
+    fill: none;
+    stroke: rgba(148, 163, 184, 0.22);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .organogram-leaf__pct {
+    fill: #f8fafc;
+    font-size: 13px;
+  }
+`;
 
 const escapeXml = (value) =>
   String(value ?? "")
@@ -73,6 +132,31 @@ const horizonColor = (horizonDays) => {
   return HORIZON_COLORS[index];
 };
 
+const toCompletionPercent = (value) => Math.round(clamp(Number(value) || 0, 0, 100));
+
+const toFillPercent = (value) => clamp(((Number(value) || 0) / 99) * 100, 0, 100);
+
+const colorWithAlpha = (color, alpha) => {
+  const value = String(color || "").trim();
+  if (!value) return `rgba(148, 163, 184, ${alpha})`;
+  if (value.startsWith("rgba(")) return value;
+  if (value.startsWith("rgb(")) return value.replace(/^rgb\((.*)\)$/, `rgba($1, ${alpha})`);
+  if (!value.startsWith("#")) return value;
+
+  const hex = value.slice(1);
+  const normalized = hex.length === 3
+    ? hex.split("").map((part) => part + part).join("")
+    : hex;
+  if (normalized.length !== 6) return value;
+
+  const r = Number.parseInt(normalized.slice(0, 2), 16);
+  const g = Number.parseInt(normalized.slice(2, 4), 16);
+  const b = Number.parseInt(normalized.slice(4, 6), 16);
+  if ([r, g, b].some((channel) => Number.isNaN(channel))) return value;
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
 const buildBranchTree = (state) => {
   const activeLeaves = getActiveLeaves(state.baseVariables || []);
   const cardinalMap = new Map();
@@ -102,23 +186,38 @@ const buildBranchTree = (state) => {
     node.leaves.push({
       ...leaf,
       displayName: getLeafDisplayName(leaf),
-      progressPercent: Math.round(clamp(valueToPercent(leaf.currentValue), 0, 100)),
+      completionValue: Number(leaf.currentValue) || 0,
+      completionPercent: toCompletionPercent(leaf.currentValue),
       horizonColor: horizonColor(leaf.horizonDays),
       horizonLabel: horizonLabel(leaf.horizonDays),
-      fillPercent: Math.round(clamp(valueToPercent(leaf.currentValue), 0, 100)),
+      fillPercent: toFillPercent(leaf.currentValue),
       hidden: Boolean(leaf.hidden),
     });
     cardinal.leafCount += 1;
   });
 
-  const cardinals = [...cardinalMap.values()].map((cardinal) => ({
-    ...cardinal,
-    nodes: cardinal.nodes.map((node) => ({
-      ...node,
-      leafCount: node.leaves.length,
-    })),
-    nodeCount: cardinal.nodes.length,
-  }));
+  const cardinals = [...cardinalMap.values()].map((cardinal) => {
+    const nodes = cardinal.nodes.map((node) => {
+      const completionValue = average(node.leaves.map((leaf) => leaf.completionValue));
+      return {
+        ...node,
+        leafCount: node.leaves.length,
+        completionValue,
+        completionPercent: toCompletionPercent(completionValue),
+        color: cardinal.color,
+      };
+    });
+
+    const completionValue = average(nodes.map((node) => node.completionValue));
+
+    return {
+      ...cardinal,
+      nodes,
+      nodeCount: nodes.length,
+      completionValue,
+      completionPercent: toCompletionPercent(completionValue),
+    };
+  });
 
   return { activeLeaves, cardinals };
 };
@@ -186,7 +285,7 @@ const layoutOrganogram = ({ cardinals }) => {
     return positionedCardinal;
   });
 
-  const totalHeight = Math.max(960, cursorY + ORG_LAYOUT.topPadding);
+  const totalHeight = Math.max(760, cursorY + ORG_LAYOUT.topPadding + 24);
   const rootCenterY = totalHeight / 2;
 
   return {
@@ -208,13 +307,16 @@ const layoutOrganogram = ({ cardinals }) => {
 const buildBranchTreeSummary = (cardinals, totalHeight, rootCenterY) => {
   const nodeCount = cardinals.reduce((sum, cardinal) => sum + cardinal.nodeCount, 0);
   const leafCount = cardinals.reduce((sum, cardinal) => sum + cardinal.leafCount, 0);
+  const rootCompletionValue = average(cardinals.map((cardinal) => cardinal.completionValue));
   return {
     generatedAt: new Date().toISOString(),
     title: "Organograma horizontal",
     subtitle: "Vida -> cardinais -> galhos -> folhas",
     root: {
       name: "Vida",
-      label: "Raiz",
+      label: "Conclusão geral",
+      completionValue: rootCompletionValue,
+      completionPercent: toCompletionPercent(rootCompletionValue),
     },
     metrics: {
       cardinalCount: cardinals.length,
@@ -236,112 +338,16 @@ export const buildOrganogramSnapshot = (state) => {
   };
 };
 
-const renderTextLines = (lines, x, y, options = {}) => {
-  const {
-    className = "",
-    anchor = "middle",
-    lineHeight = 18,
-    startDy = 0,
-  } = options;
-
-  return `
-    <text x="${x}" y="${y}" text-anchor="${anchor}" class="${className}">
-      ${lines
-        .map((line, index) => `<tspan x="${x}" dy="${index === 0 ? startDy : lineHeight}">${escapeXml(line)}</tspan>`)
-        .join("")}
-    </text>
-  `;
-};
-
-const renderConnector = (from, to, curveX) => {
-  const startX = from.x + from.width;
-  const endX = to.x;
-  const midX = curveX ?? (startX + endX) / 2;
-  return `<path d="M ${startX} ${from.centerY} H ${midX} V ${to.centerY} H ${endX}" class="organogram-link" />`;
-};
-
-const renderRoot = (snapshot) => {
-  const root = snapshot.layout.root;
-  const box = snapshot.root;
-  const nameLines = wrapLabel(box.name, 18, 2);
-  return `
-    <g class="organogram-root" transform="translate(${root.x}, ${root.y})">
-      <rect x="0" y="0" width="${root.width}" height="${root.height}" rx="24" class="organogram-root__box" />
-      ${renderTextLines(nameLines, root.width / 2, 28, {
-        className: "organogram-root__name",
-        lineHeight: 20,
-      })}
-      <text x="${root.width / 2}" y="52" text-anchor="middle" class="organogram-root__label">${escapeXml(box.label)}</text>
-    </g>
-  `;
-};
-
-const renderCardinal = (cardinal) => {
-  const nameLines = wrapLabel(cardinal.name, 18, 2);
-  return `
-    <g class="organogram-cardinal" transform="translate(${cardinal.x}, ${cardinal.y})">
-      <rect x="0" y="0" width="${cardinal.width}" height="${cardinal.height}" rx="18" class="organogram-cardinal__box" />
-      <rect x="0" y="0" width="7" height="${cardinal.height}" rx="18" class="organogram-cardinal__stripe" fill="${escapeXml(cardinal.color)}" />
-      ${renderTextLines(nameLines, 18, 26, {
-        className: "organogram-cardinal__name",
-        anchor: "start",
-        lineHeight: 18,
-      })}
-      <text x="${cardinal.width - 16}" y="24" text-anchor="end" class="organogram-cardinal__meta">${cardinal.leafCount} folhas</text>
-      <text x="${cardinal.width - 16}" y="45" text-anchor="end" class="organogram-cardinal__meta organogram-cardinal__meta--subtle">${cardinal.nodeCount} galhos</text>
-    </g>
-  `;
-};
-
-const renderNode = (node) => {
-  const nameLines = wrapLabel(node.nodeName, 18, 2);
-  return `
-    <g class="organogram-node" transform="translate(${node.x}, ${node.y})">
-      <rect x="0" y="0" width="${node.width}" height="${node.height}" rx="16" class="organogram-node__box" />
-      ${renderTextLines(nameLines, 16, 24, {
-        className: "organogram-node__name",
-        anchor: "start",
-        lineHeight: 17,
-      })}
-      <text x="${node.width - 16}" y="24" text-anchor="end" class="organogram-node__meta">${node.leafCount} folhas</text>
-    </g>
-  `;
-};
-
-const renderLeaf = (leaf) => {
-  const nameLines = wrapLabel(leaf.displayName, 24, 2);
-  const fillWidth = Math.max(0, Math.round((leaf.width - 12) * (leaf.fillPercent / 100)));
-  const accentOpacity = leaf.hidden ? 0.46 : 0.82;
-  const baseOpacity = leaf.hidden ? 0.72 : 1;
-  const subtitle = `${leaf.currentValue}/99 • ${leaf.progressPercent}%`;
-
-  return `
-    <g class="organogram-leaf ${leaf.hidden ? "is-hidden" : ""}" transform="translate(${leaf.x}, ${leaf.y})" opacity="${baseOpacity}">
-      <rect x="0" y="0" width="${leaf.width}" height="${leaf.height}" rx="20" class="organogram-leaf__box" />
-      <rect x="0" y="0" width="${fillWidth}" height="${leaf.height}" rx="20" fill="${escapeXml(leaf.horizonColor)}" opacity="${accentOpacity}" />
-      <rect x="0" y="0" width="10" height="${leaf.height}" rx="20" fill="${escapeXml(leaf.horizonColor)}" />
-      ${renderTextLines(nameLines, 22, 28, {
-        className: "organogram-leaf__name",
-        anchor: "start",
-        lineHeight: 18,
-      })}
-      <text x="${leaf.width - 18}" y="26" text-anchor="end" class="organogram-leaf__pct">${leaf.progressPercent}%</text>
-      <text x="22" y="${leaf.height - 16}" class="organogram-leaf__meta">${escapeXml(subtitle)}</text>
-      <text x="${leaf.width - 18}" y="${leaf.height - 16}" text-anchor="end" class="organogram-leaf__meta">${escapeXml(leaf.horizonLabel)}</text>
-    </g>
-  `;
-};
-
-export const renderOrganogramSvg = (snapshot) => {
+const buildSvgDocument = (snapshot) => {
   if (!snapshot) return "";
 
   const connectors = [];
   snapshot.cardinals.forEach((cardinal) => {
-    connectors.push(renderConnector(snapshot.layout.root, cardinal, 240));
+    connectors.push(renderConnector(snapshot.layout.root, cardinal, 240, cardinal.color));
     cardinal.nodes.forEach((node) => {
-      connectors.push(renderConnector(cardinal, node, 540));
+      connectors.push(renderConnector(cardinal, node, 540, cardinal.color));
       node.leaves.forEach((leaf) => {
-        connectors.push(renderConnector(node, leaf, 860));
+        connectors.push(renderConnector(node, leaf, 860, leaf.horizonColor));
       });
     });
   });
@@ -356,7 +362,10 @@ export const renderOrganogramSvg = (snapshot) => {
 
   return `
     <svg
+      xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 ${ORG_LAYOUT.width} ${snapshot.layout.height}"
+      width="${ORG_LAYOUT.width}"
+      height="${snapshot.layout.height}"
       class="organogram-svg"
       role="img"
       aria-label="Organograma horizontal da vida"
@@ -374,6 +383,7 @@ export const renderOrganogramSvg = (snapshot) => {
           <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.55" />
         </filter>
       </defs>
+      <style>${ORGANOGRAM_INLINE_STYLES}</style>
       <rect width="100%" height="100%" fill="url(#organogram-background)" />
       <rect x="0" y="0" width="100%" height="100%" fill="url(#organogram-grid)" opacity="0.2" />
       <text x="52" y="44" class="organogram-title">${escapeXml(snapshot.title)}</text>
@@ -395,6 +405,107 @@ export const renderOrganogramSvg = (snapshot) => {
   `;
 };
 
+const renderTextLines = (lines, x, y, options = {}) => {
+  const {
+    className = "",
+    anchor = "middle",
+    lineHeight = 18,
+    startDy = 0,
+  } = options;
+
+  return `
+    <text x="${x}" y="${y}" text-anchor="${anchor}" class="${className}">
+      ${lines
+        .map((line, index) => `<tspan x="${x}" dy="${index === 0 ? startDy : lineHeight}">${escapeXml(line)}</tspan>`)
+        .join("")}
+    </text>
+  `;
+};
+
+const renderConnector = (from, to, curveX, strokeColor) => {
+  const startX = from.x + from.width;
+  const endX = to.x;
+  const midX = curveX ?? (startX + endX) / 2;
+  return `<path d="M ${startX} ${from.centerY} H ${midX} V ${to.centerY} H ${endX}" class="organogram-link" stroke="${escapeXml(colorWithAlpha(strokeColor, 0.5))}" />`;
+};
+
+const renderRoot = (snapshot) => {
+  const root = snapshot.layout.root;
+  const box = snapshot.root;
+  const nameLines = wrapLabel(box.name, 18, 2);
+  return `
+    <g class="organogram-root" transform="translate(${root.x}, ${root.y})">
+      <rect x="0" y="0" width="${root.width}" height="${root.height}" rx="24" class="organogram-root__box" />
+      ${renderTextLines(nameLines, root.width / 2, 28, {
+        className: "organogram-root__name",
+        lineHeight: 20,
+      })}
+      <text x="${root.width / 2}" y="52" text-anchor="middle" class="organogram-root__label">${escapeXml(box.completionPercent)}% concluído</text>
+    </g>
+  `;
+};
+
+const renderCardinal = (cardinal) => {
+  const nameLines = wrapLabel(cardinal.name, 18, 2);
+  return `
+    <g class="organogram-cardinal" transform="translate(${cardinal.x}, ${cardinal.y})">
+      <rect x="0" y="0" width="${cardinal.width}" height="${cardinal.height}" rx="18" class="organogram-cardinal__box" fill="${escapeXml(colorWithAlpha(cardinal.color, 0.14))}" stroke="${escapeXml(colorWithAlpha(cardinal.color, 0.38))}" />
+      <rect x="0" y="0" width="7" height="${cardinal.height}" rx="18" class="organogram-cardinal__stripe" fill="${escapeXml(cardinal.color)}" />
+      ${renderTextLines(nameLines, 18, 26, {
+        className: "organogram-cardinal__name",
+        anchor: "start",
+        lineHeight: 18,
+      })}
+      <text x="${cardinal.width - 16}" y="24" text-anchor="end" class="organogram-cardinal__meta">${cardinal.completionPercent}% concluído</text>
+      <text x="${cardinal.width - 16}" y="45" text-anchor="end" class="organogram-cardinal__meta organogram-cardinal__meta--subtle">${cardinal.nodeCount} galhos • ${cardinal.leafCount} folhas</text>
+    </g>
+  `;
+};
+
+const renderNode = (node) => {
+  const nameLines = wrapLabel(node.nodeName, 18, 2);
+  return `
+    <g class="organogram-node" transform="translate(${node.x}, ${node.y})">
+      <rect x="0" y="0" width="${node.width}" height="${node.height}" rx="16" class="organogram-node__box" fill="${escapeXml(colorWithAlpha(node.color, 0.12))}" stroke="${escapeXml(colorWithAlpha(node.color, 0.34))}" />
+      ${renderTextLines(nameLines, 16, 24, {
+        className: "organogram-node__name",
+        anchor: "start",
+        lineHeight: 17,
+      })}
+      <text x="${node.width - 16}" y="24" text-anchor="end" class="organogram-node__meta">${node.completionPercent}% concluído</text>
+      <text x="${node.width - 16}" y="42" text-anchor="end" class="organogram-node__meta organogram-node__meta--subtle">${node.leafCount} folhas</text>
+    </g>
+  `;
+};
+
+const renderLeaf = (leaf) => {
+  const nameLines = wrapLabel(leaf.displayName, 24, 2);
+  const fillWidth = Math.max(0, Math.round((leaf.width - 12) * (leaf.fillPercent / 100)));
+  const accentOpacity = leaf.hidden ? 0.46 : 0.82;
+  const baseOpacity = leaf.hidden ? 0.72 : 1;
+  const subtitle = `${leaf.currentValue}/99 • ${leaf.completionPercent}%`;
+
+  return `
+    <g class="organogram-leaf ${leaf.hidden ? "is-hidden" : ""}" transform="translate(${leaf.x}, ${leaf.y})" opacity="${baseOpacity}">
+      <rect x="0" y="0" width="${leaf.width}" height="${leaf.height}" rx="20" class="organogram-leaf__box" />
+      <rect x="0" y="0" width="${fillWidth}" height="${leaf.height}" rx="20" fill="${escapeXml(leaf.horizonColor)}" opacity="${accentOpacity}" />
+      <rect x="0" y="0" width="10" height="${leaf.height}" rx="20" fill="${escapeXml(leaf.horizonColor)}" />
+      ${renderTextLines(nameLines, 22, 28, {
+        className: "organogram-leaf__name",
+        anchor: "start",
+        lineHeight: 18,
+      })}
+      <text x="${leaf.width - 18}" y="26" text-anchor="end" class="organogram-leaf__pct">${leaf.completionPercent}%</text>
+      <text x="22" y="${leaf.height - 16}" class="organogram-leaf__meta">${escapeXml(subtitle)}</text>
+      <text x="${leaf.width - 18}" y="${leaf.height - 16}" text-anchor="end" class="organogram-leaf__meta">${escapeXml(leaf.horizonLabel)}</text>
+    </g>
+  `;
+};
+
+export const renderOrganogramSvg = (snapshot) => {
+  return buildSvgDocument(snapshot);
+};
+
 const downloadBlob = (blob, filename) => {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -410,10 +521,10 @@ const downloadBlob = (blob, filename) => {
 const snapshotFileBase = (snapshot) => `organograma-${snapshot.generatedAt.slice(0, 10)}`;
 
 export const createOrganogramSvgBlob = (snapshot) =>
-  new Blob([renderOrganogramSvg(snapshot)], { type: "image/svg+xml;charset=utf-8" });
+  new Blob([buildSvgDocument(snapshot)], { type: "image/svg+xml;charset=utf-8" });
 
 export const createOrganogramPngBlob = async (snapshot) => {
-  const svg = renderOrganogramSvg(snapshot);
+  const svg = buildSvgDocument(snapshot);
   const svgBlob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
   const svgUrl = URL.createObjectURL(svgBlob);
 
@@ -451,14 +562,30 @@ export const createOrganogramPngBlob = async (snapshot) => {
 };
 
 export const downloadOrganogramSnapshot = async (snapshot) => {
-  const blob = await createOrganogramPngBlob(snapshot);
-  downloadBlob(blob, `${snapshotFileBase(snapshot)}.png`);
+  try {
+    const blob = await createOrganogramPngBlob(snapshot);
+    downloadBlob(blob, `${snapshotFileBase(snapshot)}.png`);
+  } catch {
+    const blob = createOrganogramSvgBlob(snapshot);
+    downloadBlob(blob, `${snapshotFileBase(snapshot)}.svg`);
+  }
 };
 
 export const shareOrganogramSnapshot = async (snapshot) => {
   const fileName = `${snapshotFileBase(snapshot)}.png`;
-  const blob = await createOrganogramPngBlob(snapshot);
-  const file = new File([blob], fileName, { type: "image/png" });
+  let blob;
+  let mimeType = "image/png";
+
+  try {
+    blob = await createOrganogramPngBlob(snapshot);
+  } catch {
+    blob = createOrganogramSvgBlob(snapshot);
+    mimeType = "image/svg+xml";
+  }
+
+  const file = new File([blob], mimeType === "image/png" ? fileName : `${snapshotFileBase(snapshot)}.svg`, {
+    type: mimeType,
+  });
 
   if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
     await navigator.share({
@@ -469,6 +596,6 @@ export const shareOrganogramSnapshot = async (snapshot) => {
     return true;
   }
 
-  downloadBlob(blob, fileName);
+  downloadBlob(blob, file.name);
   return false;
 };

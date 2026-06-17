@@ -1,17 +1,12 @@
 import { BaseVariable } from "../models/BaseVariable.js";
 import { CardinalVariable } from "../models/CardinalVariable.js";
-import { addDays } from "../utils/dates.js";
+import { addDays, getLocalDateStamp } from "../utils/dates.js";
 import { average, clamp } from "../utils/calculations.js";
 
 const now = new Date();
-const getLocalDateStamp = (date = new Date()) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
+const getDueDateStamp = (dateLike, days) => getLocalDateStamp(addDays(dateLike, days));
 const todayStamp = getLocalDateStamp(now);
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
 
 const cardinalDefinitions = [
   { id: "identidade", name: "Identidade", color: "#f59e0b", icon: "◌" },
@@ -29,6 +24,25 @@ const normalizeLeafCustomName = (value) => {
 };
 
 const normalizeLeafBoolean = (value) => Boolean(value);
+const isDateStamp = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
+
+const buildNextStepSelection = (leaf, selectedAt = new Date().toISOString(), overrides = {}) => {
+  const selectedDate = new Date(selectedAt);
+  const safeSelectedAt = Number.isNaN(selectedDate.getTime()) ? new Date().toISOString() : selectedDate.toISOString();
+  const effectiveHorizonDays = Number(overrides.horizonDays ?? leaf?.horizonDays ?? 7);
+  const dueDateStamp = isDateStamp(overrides.dueDateStamp)
+    ? overrides.dueDateStamp
+    : getDueDateStamp(safeSelectedAt, effectiveHorizonDays);
+
+  return {
+    leafId: leaf?.id || "",
+    text: getLeafDisplayName(leaf) || "Definir",
+    selectedAt: safeSelectedAt,
+    dueDateStamp,
+    horizonDays: effectiveHorizonDays,
+    reminderShownForDateStamp: overrides.reminderShownForDateStamp || "",
+  };
+};
 
 const isDeletedLeaf = (leaf) => Boolean(leaf?.deleted);
 
@@ -475,10 +489,7 @@ export const createDefaultState = () => {
       progressionScore: 0,
       note: "",
     },
-    nextStep: {
-      leafId: leafSeed[0].id,
-      text: leafSeed[0].name,
-    },
+    nextStep: buildNextStepSelection(leafSeed[0], now.toISOString()),
     showArchive: false,
     showHiddenLeaves: false,
     leafSearchQuery: "",
@@ -524,6 +535,26 @@ export const normalizeState = (state) => ({
       ? state.organogram.history.slice(0, 5)
       : [],
   },
+  nextStep: (() => {
+    const sourceLeaf =
+      (state.baseVariables || []).find((leaf) => leaf.id === state.nextStep?.leafId) ||
+      leafSeed.find((leaf) => leaf.id === state.nextStep?.leafId) ||
+      leafSeed[0];
+    const built = buildNextStepSelection(sourceLeaf, state.nextStep?.selectedAt || now.toISOString(), {
+      horizonDays: state.nextStep?.horizonDays,
+      dueDateStamp: state.nextStep?.dueDateStamp,
+      reminderShownForDateStamp: state.nextStep?.reminderShownForDateStamp,
+    });
+    return {
+      ...built,
+      leafId: state.nextStep?.leafId || built.leafId,
+      text: String(state.nextStep?.text || built.text || ""),
+      selectedAt: built.selectedAt,
+      dueDateStamp: built.dueDateStamp,
+      horizonDays: built.horizonDays,
+      reminderShownForDateStamp: String(state.nextStep?.reminderShownForDateStamp || built.reminderShownForDateStamp || ""),
+    };
+  })(),
 });
 
 export const updateCardinalValue = (state, cardinalId, delta) => ({
@@ -627,10 +658,7 @@ export const deleteLeaf = (state, leafId) => ({
     state.nextStep?.leafId === leafId
       ? (() => {
           const fallbackLeaf = getActiveLeaves(state.baseVariables).find((leaf) => leaf.id !== leafId) || null;
-          return {
-            leafId: fallbackLeaf?.id || "",
-            text: getLeafDisplayName(fallbackLeaf) || "Definir",
-          };
+          return buildNextStepSelection(fallbackLeaf, new Date().toISOString());
         })()
       : state.nextStep,
   updatedAt: new Date().toISOString(),
@@ -656,10 +684,7 @@ export const setWeeklyReviewNote = (state, note) => ({
 
 export const selectNextStep = (state, leaf) => ({
   ...state,
-  nextStep: {
-    leafId: leaf.id,
-    text: getLeafDisplayName(leaf),
-  },
+  nextStep: buildNextStepSelection(leaf, new Date().toISOString()),
   modalOpen: false,
   updatedAt: new Date().toISOString(),
 });
@@ -747,16 +772,21 @@ export const mergeStateWithSeed = (savedState) => {
     ? savedNextStepId
     : defaultNextStepId;
 
+  const nextStepLeaf =
+    normalizedBaseVariables.find((leaf) => leaf.id === nextStepLeafId) ||
+    seedState.baseVariables.find((leaf) => leaf.id === nextStepLeafId) ||
+    seedState.baseVariables[0];
+  const savedNextStep = savedState?.nextStep || {};
+
   return normalizeState({
     ...seedState,
     ...savedState,
     baseVariables: normalizedBaseVariables,
-    nextStep: {
-      leafId: nextStepLeafId,
-      text:
-        getLeafDisplayName(normalizedBaseVariables.find((leaf) => leaf.id === nextStepLeafId)) ||
-        seedState.nextStep.text,
-    },
+    nextStep: buildNextStepSelection(nextStepLeaf, savedNextStep.selectedAt || seedState.nextStep.selectedAt, {
+      horizonDays: savedNextStep.horizonDays,
+      dueDateStamp: savedNextStep.dueDateStamp,
+      reminderShownForDateStamp: savedNextStep.reminderShownForDateStamp,
+    }),
   });
 };
 

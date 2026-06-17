@@ -26,6 +26,7 @@ import {
   onAuthStateChanged,
   signOut,
   isFirebaseReady,
+  loadUserWorkspace,
   saveUserWorkspace,
 } from "./firebase/firebase.js";
 import { createDashboardMarkup } from "./ui/dashboard.js";
@@ -39,7 +40,14 @@ import { renderLeafResults } from "./ui/adviceModal.js";
 import { getMoodFromAverageValue } from "./services/moodService.js";
 import { findLeaves } from "./services/adviceService.js";
 import { average, formatPercent } from "./utils/calculations.js";
-import { formatDateTime, horizonIndexToValue, horizonLabel, horizonValueToIndex } from "./utils/dates.js";
+import {
+  formatDateTime,
+  getLocalDateStamp,
+  getNextLocalMidnightTimestamp,
+  horizonIndexToValue,
+  horizonLabel,
+  horizonValueToIndex,
+} from "./utils/dates.js";
 import { buildReviewSummary } from "./services/reviewService.js";
 
 const STORAGE_PREFIX = "sobrecarga-state:";
@@ -66,13 +74,20 @@ const state = {
     weeklyReviewCollapsed: false,
     nextStepCollapsed: false,
   },
+  nextStepReminderOpen: false,
 };
 
 let dashboardEventsBound = false;
 let leafSearchTimer = null;
 let scrollTopSyncRaf = null;
 let scrollTopBehaviorBound = false;
+let centeredOrganogramSnapshotId = null;
+let dashboardOpenedAt = null;
+let firestoreButtonRevealTimer = null;
+let firestoreAutoSyncTimer = null;
+let lastFirestoreAutoSyncSignature = "";
 let openLeafMenuId = null;
+let nextStepReminderTimer = null;
 const expandedNodeKeys = new Set();
 
 const cloneState = (value) => JSON.parse(JSON.stringify(value));
@@ -159,10 +174,20 @@ const renderLogin = () => {
 const renderDashboard = () => {
   app.innerHTML = buildDashboardMarkup();
   bindDashboardEvents();
+  runDashboardEffects();
   requestAnimationFrame(() => {
     const chart = app.querySelector(".radar-chart");
     if (chart) {
       chart.classList.add("is-ready");
+    }
+    const organogramStage = app.querySelector(".organogram-stage.is-ready");
+    const organogramRoot = app.querySelector(".organogram-stage.is-ready .organogram-root");
+    const organogramSnapshotId = state.localState.organogram?.latest?.id || null;
+    if (organogramStage && organogramRoot && organogramSnapshotId && centeredOrganogramSnapshotId !== organogramSnapshotId) {
+      const top = Math.max(0, (organogramStage.scrollHeight - organogramStage.clientHeight) / 2);
+      organogramStage.scrollTop = top;
+      organogramStage.scrollLeft = 0;
+      centeredOrganogramSnapshotId = organogramSnapshotId;
     }
     syncScrollTopButtonVisibility();
   });
@@ -181,8 +206,113 @@ const buildDashboardMarkup = () =>
       showHiddenLeaves: state.localState.showHiddenLeaves,
       openNodeKeys: [...expandedNodeKeys],
       openLeafMenuId,
+      showFirestoreSync: isFirestoreSyncVisible(),
+      nextStepReminderOpen: state.nextStepReminderOpen,
     },
   });
+
+const isFirestoreSyncVisible = () => {
+  if (!dashboardOpenedAt) return false;
+  return Date.now() - dashboardOpenedAt >= 60 * 60 * 1000;
+};
+
+const clearFirestoreTimers = () => {
+  clearTimeout(firestoreButtonRevealTimer);
+  clearTimeout(firestoreAutoSyncTimer);
+  firestoreButtonRevealTimer = null;
+  firestoreAutoSyncTimer = null;
+};
+
+const clearNextStepReminderTimer = () => {
+  clearTimeout(nextStepReminderTimer);
+  nextStepReminderTimer = null;
+};
+
+const recordNextStepReminderShown = (dueDateStamp) => {
+  if (!state.localState?.nextStep) return;
+  state.localState = {
+    ...state.localState,
+    nextStep: {
+      ...state.localState.nextStep,
+      reminderShownForDateStamp: dueDateStamp,
+    },
+  };
+  saveState();
+};
+
+const openNextStepReminder = () => {
+  const dueDateStamp = state.localState?.nextStep?.dueDateStamp;
+  if (!dueDateStamp) return;
+  if (state.localState.nextStep?.reminderShownForDateStamp === dueDateStamp) {
+    return;
+  }
+
+  recordNextStepReminderShown(dueDateStamp);
+  state.nextStepReminderOpen = true;
+  renderDashboard();
+};
+
+const closeNextStepReminder = () => {
+  if (!state.nextStepReminderOpen) return;
+  state.nextStepReminderOpen = false;
+  renderDashboard();
+};
+
+const scheduleNextStepReminderCheck = () => {
+  clearNextStepReminderTimer();
+  if (!state.user || state.loading) return;
+
+  const nextStep = state.localState?.nextStep;
+  if (!nextStep?.leafId || !nextStep.dueDateStamp) return;
+
+  const todayStamp = getLocalDateStamp();
+  if (todayStamp >= nextStep.dueDateStamp) {
+    if (nextStep.reminderShownForDateStamp !== nextStep.dueDateStamp) {
+      openNextStepReminder();
+    }
+    return;
+  }
+
+  const delay = Math.max(0, getNextLocalMidnightTimestamp() - Date.now() + 50);
+  nextStepReminderTimer = window.setTimeout(() => {
+    nextStepReminderTimer = null;
+    scheduleNextStepReminderCheck();
+  }, delay);
+};
+
+const scheduleFirestoreButtonReveal = () => {
+  if (!dashboardOpenedAt || isFirestoreSyncVisible()) return;
+  const remaining = Math.max(0, 60 * 60 * 1000 - (Date.now() - dashboardOpenedAt));
+  clearTimeout(firestoreButtonRevealTimer);
+  firestoreButtonRevealTimer = window.setTimeout(() => {
+    firestoreButtonRevealTimer = null;
+    if (state.user && !state.loading) {
+      renderDashboard();
+    }
+  }, remaining + 50);
+};
+
+const scheduleFirestoreAutoSync = () => {
+  if (!state.user || state.loading || state.saving || !state.dirty) return;
+  const signature = state.localState?.updatedAt || "";
+  if (!signature || signature === lastFirestoreAutoSyncSignature) return;
+
+  clearTimeout(firestoreAutoSyncTimer);
+  firestoreAutoSyncTimer = window.setTimeout(async () => {
+    firestoreAutoSyncTimer = null;
+    if (!state.user || state.loading || state.saving || !state.dirty) return;
+    if ((state.localState?.updatedAt || "") !== signature) return;
+
+    const saved = await persistWorkspaceToFirestore("Sincronizado automaticamente");
+    lastFirestoreAutoSyncSignature = saved ? signature : "";
+  }, 600);
+};
+
+const runDashboardEffects = () => {
+  scheduleFirestoreButtonReveal();
+  scheduleFirestoreAutoSync();
+  scheduleNextStepReminderCheck();
+};
 
 const patchDashboardSections = (selectors) => {
   if (!state.user || state.loading) return;
@@ -205,6 +335,8 @@ const patchDashboardSections = (selectors) => {
     }
     syncScrollTopButtonVisibility();
   });
+
+  runDashboardEffects();
 };
 
 const getScrollTopButton = () => app.querySelector('[data-action="scroll-top"]');
@@ -293,8 +425,8 @@ const refreshSummaryBindings = () => {
 };
 
 const refreshWeeklyReviewPanel = () => {
-  const section = app.querySelector('[data-dashboard-section="weekly-review"]');
-  if (!section) return;
+  const sections = app.querySelectorAll('[data-dashboard-section="weekly-review"], .modal--reminder');
+  if (!sections.length) return;
 
   const score =
     state.drafts.weeklyReviewScore !== null
@@ -303,29 +435,31 @@ const refreshWeeklyReviewPanel = () => {
   const scoreText = `${score > 0 ? "+" : ""}${score}`;
   const scoreLabel = statusLabels[score] || "Neutro";
 
-  const currentScore = section.querySelector("[data-weekly-review-score-current]");
-  if (currentScore) {
-    currentScore.textContent = scoreText;
-  }
+  sections.forEach((section) => {
+    const currentScore = section.querySelector("[data-weekly-review-score-current]");
+    if (currentScore) {
+      currentScore.textContent = scoreText;
+    }
 
-  const currentLabel = section.querySelector("[data-weekly-review-score-label]");
-  if (currentLabel) {
-    currentLabel.textContent = scoreLabel;
-  }
+    const currentLabel = section.querySelector("[data-weekly-review-score-label]");
+    if (currentLabel) {
+      currentLabel.textContent = scoreLabel;
+    }
 
-  const input = section.querySelector('[data-field="weekly-review-score"]');
-  if (input) {
-    input.value = String(score);
-  }
+    const input = section.querySelector('[data-field="weekly-review-score"]');
+    if (input) {
+      input.value = String(score);
+    }
 
-  section.querySelectorAll("[data-weekly-score-step]").forEach((button) => {
-    const buttonScore = Number(button.dataset.weeklyScoreStep);
-    button.classList.toggle("is-active", buttonScore === score);
-  });
+    section.querySelectorAll("[data-weekly-score-step]").forEach((button) => {
+      const buttonScore = Number(button.dataset.weeklyScoreStep);
+      button.classList.toggle("is-active", buttonScore === score);
+    });
 
-  section.querySelectorAll("[data-weekly-score-label]").forEach((label) => {
-    const labelScore = Number(label.dataset.weeklyScoreLabel);
-    label.classList.toggle("is-active", labelScore === score);
+    section.querySelectorAll("[data-weekly-score-label]").forEach((label) => {
+      const labelScore = Number(label.dataset.weeklyScoreLabel);
+      label.classList.toggle("is-active", labelScore === score);
+    });
   });
 };
 
@@ -417,6 +551,27 @@ const setLocalStatePartial = (updater, partialSelectors) => {
   refreshSummaryBindings();
   patchDashboardSections(partialSelectors);
   saveState();
+};
+
+const applyWorkspaceSnapshot = (nextState, syncMessage) => {
+  state.localState = rolloverDailySnapshot(
+    mergeStateWithSeed(normalizeState({ ...createDefaultState(), ...nextState }))
+  );
+  syncDerivedState();
+  state.dirty = false;
+  state.syncMessage = syncMessage;
+  state.nextStepReminderOpen = false;
+  state.drafts = {
+    weeklyReviewScore: null,
+    weeklyReviewNote: null,
+    nextStepText: null,
+  };
+  state.panelStates = {
+    weeklyReviewCollapsed: false,
+    nextStepCollapsed: false,
+  };
+  saveState();
+  renderDashboard();
 };
 
 const setWeeklyReviewScoreLocal = (score) => {
@@ -547,8 +702,10 @@ const persistWorkspaceToFirestore = async (successMessage = "Salvo no Firestore"
     state.lastSavedAt = new Date().toISOString();
     state.dirty = false;
     state.syncMessage = successMessage;
+    return true;
   } catch (error) {
     state.syncMessage = error?.message || "Falha ao salvar no Firestore";
+    return false;
   } finally {
     state.saving = false;
     renderDashboard();
@@ -557,6 +714,32 @@ const persistWorkspaceToFirestore = async (successMessage = "Salvo no Firestore"
 
 const handleManualFirestoreSave = async () => {
   await persistWorkspaceToFirestore("Salvo no Firestore");
+};
+
+const handleFirestoreSync = async () => {
+  if (!state.user) return;
+  if (state.dirty && !window.confirm("Isso vai substituir os valores locais pelos dados do Firestore. Continuar?")) {
+    return;
+  }
+
+  state.loading = true;
+  state.syncMessage = "Carregando dados do Firestore...";
+  renderDashboard();
+
+  try {
+    const remote = await loadUserWorkspace(state.user.uid);
+    if (!remote) {
+      state.syncMessage = "Nenhum workspace encontrado no Firestore";
+      return;
+    }
+
+    applyWorkspaceSnapshot(remote, "Sincronizado com o Firestore");
+  } catch (error) {
+    state.syncMessage = error?.message || "Falha ao sincronizar com o Firestore";
+  } finally {
+    state.loading = false;
+    renderDashboard();
+  }
 };
 
 const handleGenerateOrganogram = async () => {
@@ -699,6 +882,11 @@ async function handleDashboardClick(event) {
     return;
   }
 
+  if (action === "sync-firestore") {
+    await handleFirestoreSync();
+    return;
+  }
+
   if (action === "generate-organogram") {
     try {
       await handleGenerateOrganogram();
@@ -767,6 +955,7 @@ async function handleDashboardClick(event) {
   if (action === "commit-weekly-review") {
     commitWeeklyReviewNote();
     setWeeklyReviewCollapsed(true);
+    closeNextStepReminder();
     return;
   }
 
@@ -788,6 +977,11 @@ async function handleDashboardClick(event) {
 
   if (action === "toggle-next-step-card") {
     setNextStepCollapsed(false);
+    return;
+  }
+
+  if (action === "close-next-step-reminder") {
+    closeNextStepReminder();
     return;
   }
 
@@ -829,6 +1023,7 @@ async function handleDashboardClick(event) {
     const leafId = target.dataset.leafId;
     const leaf = state.localState.baseVariables.find((item) => item.id === leafId);
     if (leaf) {
+      state.nextStepReminderOpen = false;
       setLocalState((current) => selectNextStep(current, leaf));
     }
     return;
@@ -937,10 +1132,15 @@ const setupAuthListener = async () => {
       if (user) {
         expandedNodeKeys.clear();
         openLeafMenuId = null;
+        state.nextStepReminderOpen = false;
         state.user = { uid: user.uid, email: user.email };
         state.loading = true;
         state.authReady = true;
         state.error = "";
+        dashboardOpenedAt = Date.now();
+        centeredOrganogramSnapshotId = null;
+        lastFirestoreAutoSyncSignature = "";
+        clearFirestoreTimers();
         render();
         state.localState = loadSavedState(state.user);
         state.drafts = {
@@ -974,11 +1174,17 @@ const setupAuthListener = async () => {
       };
       expandedNodeKeys.clear();
       openLeafMenuId = null;
+      state.nextStepReminderOpen = false;
       clearTimeout(leafSearchTimer);
       leafSearchTimer = null;
       state.dirty = false;
       state.lastSavedAt = null;
       state.syncMessage = "Aguardando login";
+      dashboardOpenedAt = null;
+      centeredOrganogramSnapshotId = null;
+      lastFirestoreAutoSyncSignature = "";
+      clearFirestoreTimers();
+      clearNextStepReminderTimer();
       unbindDashboardEvents();
       render();
     });

@@ -4,7 +4,7 @@ import { renderLeafModal } from "./adviceModal.js";
 import { renderOrganogramSvg } from "./organogram.js";
 import { getActiveLeaves, getLeafDisplayName } from "../services/variableService.js";
 import { average, progressBetween, formatPercent } from "../utils/calculations.js";
-import { formatDateTime, horizonLabel, horizonOptions, horizonValueToIndex } from "../utils/dates.js";
+import { formatDate, formatDateTime, horizonLabel, horizonOptions, horizonValueToIndex } from "../utils/dates.js";
 import { findLeaves } from "../services/adviceService.js";
 import { buildReviewSummary } from "../services/reviewService.js";
 
@@ -21,6 +21,68 @@ const horizonToneClass = (value) => {
   return `horizon-tone horizon-tone--${index}`;
 };
 
+const renderNextStepLeafContext = (leaf, nextStep) => {
+  if (!leaf) {
+    return `
+      <p class="empty-state">Selecione uma folha no card 9 para mostrar aqui o próximo passo concreto.</p>
+    `;
+  }
+
+  const cardinalName = nextStep?.cardinalName || leaf.cardinalName || "";
+  const nodeName = leaf.nodeName || "Sem n\u00F3";
+  const dueDate = nextStep?.dueDateStamp ? formatDate(nextStep.dueDateStamp) : "Sem prazo";
+  const selectedAt = nextStep?.selectedAt ? formatDateTime(nextStep.selectedAt) : "Sem registro";
+
+  return `
+    <div class="next-step-panel__context">
+      <p class="next-step-panel__label">Folha escolhida</p>
+      <strong>${getLeafDisplayName(leaf)}</strong>
+      <p>${cardinalName} \u2022 ${nodeName} \u2022 ${leaf.currentValue} \u2022 ${horizonLabel(nextStep?.horizonDays || leaf.horizonDays)}</p>
+      <p class="panel-note">
+        Definida em ${selectedAt} • vence em ${dueDate}
+      </p>
+    </div>
+  `;
+};
+
+const renderNextStepReminderModal = ({
+  currentNextLeaf,
+  nextStep,
+  weeklyReviewScore,
+  weeklyReviewNote,
+}) => `
+  <div class="modal modal--reminder is-open" role="dialog" aria-modal="true" aria-labelledby="next-step-reminder-title">
+    <div class="modal__backdrop" data-action="close-next-step-reminder"></div>
+    <div class="modal__panel modal__panel--reminder">
+      <header class="modal__header">
+        <div>
+          <p class="eyebrow">Card 8</p>
+          <h3 id="next-step-reminder-title">Como foi o nosso desenvolvimento desde que definimos este passo?</h3>
+        </div>
+        <button type="button" class="icon-button" data-action="close-next-step-reminder" aria-label="Fechar lembrete">x</button>
+      </header>
+      <div class="review-panel">
+        ${renderNextStepLeafContext(currentNextLeaf, nextStep)}
+        <p class="review-panel__score">
+          Resultado atual:
+          <strong data-weekly-review-score-current>${weeklyReviewScore > 0 ? "+" : ""}${weeklyReviewScore}</strong>
+          <span data-weekly-review-score-label>${statusLabels[weeklyReviewScore] || "Neutro"}</span>
+        </p>
+        ${renderStatusBar(weeklyReviewScore)}
+        <label class="field">
+          <span>Observações rápidas</span>
+          <textarea rows="3" data-field="weekly-review-note" placeholder="O que avançou, travou ou ficou mais claro?">${weeklyReviewNote}</textarea>
+        </label>
+        <p class="panel-note">O texto acima fica como rascunho até clicar em Feito.</p>
+      </div>
+      <footer class="card__footer card__footer--split">
+        <button type="button" class="button button--ghost" data-action="close-next-step-reminder">Depois</button>
+        <button type="button" class="button button--soft" data-action="commit-weekly-review">Feito</button>
+      </footer>
+    </div>
+  </div>
+`;
+
 export const createDashboardMarkup = (state) => {
   const summary = buildReviewSummary(state);
   const openNodeKeys = new Set(state.ui?.openNodeKeys || []);
@@ -28,19 +90,25 @@ export const createDashboardMarkup = (state) => {
   const showHiddenLeaves = Boolean(state.ui?.showHiddenLeaves);
   const weeklyReviewCollapsed = Boolean(state.panelStates?.weeklyReviewCollapsed);
   const nextStepCollapsed = Boolean(state.panelStates?.nextStepCollapsed);
+  const weeklyReviewScoreDraft = state.drafts?.weeklyReviewScore;
+  const weeklyReviewNoteDraft = state.drafts?.weeklyReviewNote;
+  const nextStepTextDraft = state.drafts?.nextStepText;
   const weeklyReviewScore =
-    state.drafts?.weeklyReviewScore !== null
-      ? Number(state.drafts.weeklyReviewScore)
+    weeklyReviewScoreDraft !== null && weeklyReviewScoreDraft !== undefined
+      ? Number(weeklyReviewScoreDraft)
       : Number(state.weeklyReview.moodValue ?? 0);
   const weeklyReviewNote =
-    state.drafts?.weeklyReviewNote !== null ? state.drafts.weeklyReviewNote : state.weeklyReview.note || "";
+    weeklyReviewNoteDraft !== null && weeklyReviewNoteDraft !== undefined
+      ? weeklyReviewNoteDraft
+      : state.weeklyReview.note || "";
   const nextStepText =
-    state.drafts?.nextStepText !== null ? state.drafts.nextStepText : state.nextStep.text || "";
+    nextStepTextDraft !== null && nextStepTextDraft !== undefined ? nextStepTextDraft : state.nextStep.text || "";
   const radarItems = state.cardinals.map((item) => ({
     ...item,
     value: item.value,
   }));
   const organogramSnapshot = state.organogram?.latest || null;
+  const nextStep = state.nextStep || {};
 
   const filteredLeaves = findLeaves(
     activeLeaves.map((leaf) => ({
@@ -58,6 +126,12 @@ export const createDashboardMarkup = (state) => {
         ...currentNextLeafRaw,
         cardinalName: state.cardinals.find((item) => item.id === currentNextLeafRaw.cardinalId)?.name || "",
         horizonLabel: horizonLabel(currentNextLeafRaw.horizonDays),
+      }
+    : null;
+  const currentNextLeafContext = currentNextLeaf
+    ? {
+        ...currentNextLeaf,
+        nextStep,
       }
     : null;
 
@@ -120,7 +194,7 @@ export const createDashboardMarkup = (state) => {
           </div>
           <div class="status-pill status-pill--sync">
             <span>${state.ui?.dirty ? "•" : "✓"}</span>
-            <span data-summary="sync-message">${state.ui?.syncMessage || "Salvo localmente"}</span>
+            <span data-summary="sync-message">${state.ui?.syncMessage || "Alterações salvas localmente"}</span>
           </div>
           <button
             type="button"
@@ -128,8 +202,13 @@ export const createDashboardMarkup = (state) => {
             data-action="save-firestore"
             ${state.ui?.saving ? "disabled" : ""}
           >
-            ${state.ui?.saving ? "Salvando..." : "Salvar"}
+            ${state.ui?.saving ? "Salvando..." : "Salvar no Firestore"}
           </button>
+          ${state.ui?.showFirestoreSync ? `
+            <button type="button" class="button button--ghost" data-action="sync-firestore" ${state.ui?.saving ? "disabled" : ""}>
+              Sincronizar no Firestore
+            </button>
+          ` : ""}
           <button type="button" class="button button--ghost" data-action="sign-out">Sair</button>
         </div>
       </header>
@@ -420,7 +499,7 @@ export const createDashboardMarkup = (state) => {
           })
           .join("")}
 
-                <article class="card dashboard-card dashboard-card--wide ${weeklyReviewCollapsed ? "card--collapsed" : ""}" data-dashboard-section="weekly-review">
+        <article class="card dashboard-card dashboard-card--wide ${weeklyReviewCollapsed ? "card--collapsed" : ""}" data-dashboard-section="weekly-review">
           <header class="card__header">
             <div>
               <p class="eyebrow">Card 8</p>
@@ -430,6 +509,7 @@ export const createDashboardMarkup = (state) => {
           </header>
           <div class="card__body">
             <div class="review-panel">
+              ${renderNextStepLeafContext(currentNextLeafContext, nextStep)}
               <p class="review-panel__score">
                 Resultado atual:
                 <strong data-weekly-review-score-current>
@@ -451,21 +531,17 @@ export const createDashboardMarkup = (state) => {
           </div>
         </article>
 
-                <article class="card dashboard-card dashboard-card--wide ${nextStepCollapsed ? "card--collapsed" : ""}" data-dashboard-section="next-step">
+        <article class="card dashboard-card dashboard-card--wide ${nextStepCollapsed ? "card--collapsed" : ""}" data-dashboard-section="next-step">
           <header class="card__header">
             <div>
               <p class="eyebrow">Card 9</p>
               <h3>Qual é o próximo passo concreto que melhoraria minha vida nos próximos 7 dias?</h3>
             </div>
-            ${nextStepCollapsed ? `<button type="button" class="button button--ghost" data-action="toggle-next-step-card">Editar</button>` : ""}
+            ${nextStepCollapsed ? `<button type="button" class="button button--ghost" data-action="toggle-next-step-card">Editar próximo passo concreto</button>` : ""}
           </header>
           <div class="card__body">
             <div class="next-step-panel">
-              <div>
-                <p class="next-step-panel__label">Folha escolhida</p>
-                <strong>${currentNextLeaf?.name || "Nenhuma folha selecionada"}</strong>
-                <p>${currentNextLeaf?.cardinalName || ""} • ${currentNextLeaf?.nodeName || ""} • ${currentNextLeaf ? currentNextLeaf.currentValue : "--"} • ${currentNextLeaf ? currentNextLeaf.horizonLabel : ""}</p>
-              </div>
+              ${renderNextStepLeafContext(currentNextLeafContext, nextStep)}
               <label class="field">
                 <span>Frase do próximo passo</span>
                 <textarea rows="3" data-field="next-step-text" placeholder="Escreva a ação concreta...">${nextStepText}</textarea>
@@ -681,5 +757,11 @@ export const createDashboardMarkup = (state) => {
     </div>
 
     ${state.modalOpen ? renderLeafModal({ leaves: filteredLeaves, query: state.leafSearchQuery, selectedLeafId: state.nextStep.leafId }) : ""}
+    ${state.ui?.nextStepReminderOpen ? renderNextStepReminderModal({
+      currentNextLeaf: currentNextLeafContext,
+      nextStep,
+      weeklyReviewScore,
+      weeklyReviewNote,
+    }) : ""}
   `;
 };

@@ -13,6 +13,23 @@ export const formatDateTime = (dateLike) =>
     timeStyle: "short",
   }).format(new Date(dateLike));
 
+export const getLocalDateStamp = (date = new Date()) => {
+  const current = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(current.getTime())) {
+    return "";
+  }
+  const year = current.getFullYear();
+  const month = String(current.getMonth() + 1).padStart(2, "0");
+  const day = String(current.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+export const getNextLocalMidnightTimestamp = (date = new Date()) => {
+  const nextMidnight = new Date(date);
+  nextMidnight.setHours(24, 0, 0, 0);
+  return nextMidnight.getTime();
+};
+
 export const addDays = (dateLike, days) => {
   const date = new Date(dateLike);
   date.setDate(date.getDate() + days);
