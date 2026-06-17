@@ -29,6 +29,11 @@ import {
   saveUserWorkspace,
 } from "./firebase/firebase.js";
 import { createDashboardMarkup } from "./ui/dashboard.js";
+import {
+  buildOrganogramSnapshot,
+  downloadOrganogramSnapshot,
+  shareOrganogramSnapshot,
+} from "./ui/organogram.js";
 import { statusLabels } from "./ui/moodPanel.js";
 import { renderLeafResults } from "./ui/adviceModal.js";
 import { getMoodFromAverageValue } from "./services/moodService.js";
@@ -238,6 +243,7 @@ const refreshSummaryBindings = () => {
   const currentNextLeaf =
     activeLeaves.find((leaf) => leaf.id === state.localState.nextStep.leafId) ||
     activeLeaves[0];
+  const organogramSnapshot = state.localState.organogram?.latest || null;
 
   const setText = (selector, value) => {
     const element = app.querySelector(selector);
@@ -250,6 +256,17 @@ const refreshSummaryBindings = () => {
   setText('[data-summary="mood-emoji"]', moodEmoji);
   setText('[data-summary="mood-label"]', summary.mood.label);
   setText('[data-summary="sync-message"]', state.syncMessage || "Salvo localmente");
+  setText('[data-summary="session-mood"]', summary.mood.label);
+  setText('[data-summary="session-state"]', summary.mood.label);
+  setText('[data-summary="session-average-cardinal"]', formatPercent(summary.averageCardinal));
+  setText('[data-summary="session-changed-leaves"]', String(summary.changedLeaves));
+  setText('[data-summary="session-next-step"]', currentNextLeaf?.name || "Definir");
+  setText('[data-summary="session-updated-at"]', formatDateTime(state.localState.updatedAt));
+  setText(
+    '[data-summary="session-last-saved-at"]',
+    state.lastSavedAt ? formatDateTime(state.lastSavedAt) : "Ainda não enviado"
+  );
+  setText('[data-summary="session-recent-changes"]', String(summary.changedLeaves));
   setText('[data-summary="hero-average-cardinal"]', formatPercent(summary.averageCardinal));
   setText('[data-summary="hero-changed-leaves"]', String(summary.changedLeaves));
   setText('[data-summary="hero-updated-at"]', formatDateTime(state.localState.updatedAt));
@@ -261,6 +278,18 @@ const refreshSummaryBindings = () => {
   setText('[data-summary="overview-average-cardinal"]', summary.averageCardinal.toFixed(1));
   setText('[data-summary="overview-progress-average"]', `${summary.progressAverage.toFixed(1)}%`);
   setText('[data-summary="overview-next-step"]', currentNextLeaf?.name || "Definir");
+  setText(
+    '[data-summary="organogram-generated-at"]',
+    organogramSnapshot ? formatDateTime(organogramSnapshot.generatedAt) : "Nunca gerado"
+  );
+  setText(
+    '[data-summary="organogram-leaf-count"]',
+    `${organogramSnapshot ? organogramSnapshot.metrics.leafCount : 0} folhas`
+  );
+  setText(
+    '[data-summary="organogram-node-count"]',
+    `${organogramSnapshot ? organogramSnapshot.metrics.nodeCount : 0} galhos`
+  );
 };
 
 const refreshWeeklyReviewPanel = () => {
@@ -313,7 +342,8 @@ const refreshNextStepPanel = () => {
 const refreshRadarChart = () => {
   const chart = app.querySelector('[data-dashboard-section="overview-chart"]');
   if (!chart) return;
-  chart.innerHTML = createDashboardMarkup({
+  const template = document.createElement("div");
+  template.innerHTML = createDashboardMarkup({
     ...state.localState,
     ui: {
       dirty: state.dirty,
@@ -321,8 +351,11 @@ const refreshRadarChart = () => {
       saving: state.saving,
       lastSavedAt: state.lastSavedAt,
     },
-  })
-    .match(/<div class="overview-panel overview-panel--chart" data-dashboard-section="overview-chart">([\s\S]*?)<\/div>\s*<\/div>\s*<\/article>/)?.[1] || chart.innerHTML;
+  });
+  const nextChart = template.querySelector('[data-dashboard-section="overview-chart"]');
+  if (nextChart) {
+    chart.innerHTML = nextChart.innerHTML;
+  }
 };
 
 const refreshCardinalRow = (cardinalId) => {
@@ -502,7 +535,7 @@ const handleSignOut = async () => {
   await signOut();
 };
 
-const handleManualFirestoreSave = async () => {
+const persistWorkspaceToFirestore = async (successMessage = "Salvo no Firestore") => {
   if (!state.user || state.saving) return;
 
   state.saving = true;
@@ -513,13 +546,43 @@ const handleManualFirestoreSave = async () => {
     await saveUserWorkspace(state.user.uid, state.localState);
     state.lastSavedAt = new Date().toISOString();
     state.dirty = false;
-    state.syncMessage = "Salvo no Firestore";
+    state.syncMessage = successMessage;
   } catch (error) {
     state.syncMessage = error?.message || "Falha ao salvar no Firestore";
   } finally {
     state.saving = false;
     renderDashboard();
   }
+};
+
+const handleManualFirestoreSave = async () => {
+  await persistWorkspaceToFirestore("Salvo no Firestore");
+};
+
+const handleGenerateOrganogram = async () => {
+  const snapshot = buildOrganogramSnapshot(state.localState);
+
+  setLocalState((current) => {
+    const history = [
+      {
+        id: snapshot.id,
+        generatedAt: snapshot.generatedAt,
+        leafCount: snapshot.metrics.leafCount,
+        nodeCount: snapshot.metrics.nodeCount,
+      },
+      ...(current.organogram?.history || []),
+    ].slice(0, 5);
+
+    return {
+      ...current,
+      organogram: {
+        latest: snapshot,
+        history,
+      },
+    };
+  });
+
+  await persistWorkspaceToFirestore("Organograma gerado e sincronizado");
 };
 
 const handleScrollTop = () => {
@@ -621,7 +684,7 @@ const removeLeaf = (leafId) => {
   setLocalState((current) => deleteLeaf(current, leafId));
 };
 
-function handleDashboardClick(event) {
+async function handleDashboardClick(event) {
   const target = event.target.closest("[data-action]");
   if (!target) return;
   const action = target.dataset.action;
@@ -632,7 +695,43 @@ function handleDashboardClick(event) {
   }
 
   if (action === "save-firestore") {
-    handleManualFirestoreSave();
+    await handleManualFirestoreSave();
+    return;
+  }
+
+  if (action === "generate-organogram") {
+    try {
+      await handleGenerateOrganogram();
+    } catch (error) {
+      state.syncMessage = error?.message || "Não foi possível gerar o organograma";
+      renderDashboard();
+    }
+    return;
+  }
+
+  if (action === "export-organogram") {
+    const snapshot = state.localState.organogram?.latest;
+    if (!snapshot) return;
+    try {
+      await downloadOrganogramSnapshot(snapshot);
+      state.syncMessage = "Organograma baixado como imagem";
+    } catch (error) {
+      state.syncMessage = error?.message || "Não foi possível exportar o organograma";
+    }
+    renderDashboard();
+    return;
+  }
+
+  if (action === "share-organogram") {
+    const snapshot = state.localState.organogram?.latest;
+    if (!snapshot) return;
+    try {
+      await shareOrganogramSnapshot(snapshot);
+      state.syncMessage = "Organograma pronto para compartilhamento";
+    } catch (error) {
+      state.syncMessage = error?.message || "Não foi possível compartilhar o organograma";
+    }
+    renderDashboard();
     return;
   }
 

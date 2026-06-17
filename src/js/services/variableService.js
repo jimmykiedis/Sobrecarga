@@ -483,6 +483,10 @@ export const createDefaultState = () => {
     showHiddenLeaves: false,
     leafSearchQuery: "",
     modalOpen: false,
+    organogram: {
+      latest: null,
+      history: [],
+    },
     updatedAt: new Date().toISOString(),
   };
 };
@@ -514,6 +518,12 @@ export const normalizeState = (state) => ({
       : 30,
   })),
   showHiddenLeaves: normalizeLeafBoolean(state.showHiddenLeaves),
+  organogram: {
+    latest: state.organogram?.latest || null,
+    history: Array.isArray(state.organogram?.history)
+      ? state.organogram.history.slice(0, 5)
+      : [],
+  },
 });
 
 export const updateCardinalValue = (state, cardinalId, delta) => ({

@@ -168,6 +168,122 @@ h3 {
   opacity: 1;
 }
 
+.organogram-card {
+  display: grid;
+  gap: 14px;
+}
+
+.organogram-card__toolbar {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.organogram-stage {
+  overflow: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.92), rgba(10, 16, 28, 0.92));
+  min-height: 240px;
+  padding: 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.organogram-stage.is-ready {
+  padding: 0;
+}
+
+.organogram-stage .organogram-svg {
+  width: 100%;
+  min-width: 1560px;
+  display: block;
+}
+
+.organogram-empty {
+  min-height: 216px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  padding: 20px;
+  border-radius: calc(var(--radius-lg) - 4px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.organogram-card__meta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.organogram-card__meta span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.organogram-title,
+.organogram-root__name,
+.organogram-cardinal__name,
+.organogram-node__name,
+.organogram-leaf__name {
+  fill: #f8fafc;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.organogram-title {
+  font-size: 1.2rem;
+  letter-spacing: 0.01em;
+}
+
+.organogram-subtitle,
+.organogram-root__label,
+.organogram-cardinal__meta,
+.organogram-node__meta,
+.organogram-leaf__meta,
+.organogram-leaf__pct {
+  fill: rgba(226, 232, 240, 0.76);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.organogram-root__box {
+  fill: rgba(245, 158, 11, 0.1);
+  stroke: rgba(245, 158, 11, 0.42);
+  stroke-width: 1.5;
+}
+
+.organogram-cardinal__box,
+.organogram-node__box,
+.organogram-leaf__box {
+  fill: rgba(255, 255, 255, 0.045);
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1.2;
+}
+
+.organogram-cardinal__stripe {
+  opacity: 0.92;
+}
+
+.organogram-link {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.22);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.organogram-leaf__pct {
+  fill: #f8fafc;
+  font-size: 13px;
+}
+
 .radar-grid-ring {
   fill: none;
   stroke: rgba(148, 163, 184, 0.18);
@@ -385,11 +501,13 @@ h3 {
 }
 
 .leaf-item {
+  position: relative;
   gap: 8px;
-  padding: 14px;
+  padding: 14px 60px 14px 14px;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  cursor: default;
 }
 
 .horizon-tone {
@@ -448,9 +566,10 @@ h3 {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  padding: 14px;
+  padding: 0;
   background: transparent;
   text-align: left;
+  cursor: pointer;
 }
 
 .node-card h4 {
@@ -466,7 +585,7 @@ h3 {
 .leaf-stack {
   display: grid;
   gap: 10px;
-  padding: 0 14px;
+  padding: 10px 14px 0;
   max-height: 0;
   opacity: 0;
   overflow: hidden;
@@ -497,8 +616,19 @@ h3 {
   gap: 8px;
 }
 
+.leaf-item__heading button {
+  order: 2;
+  margin-left: auto;
+}
+
 .leaf-item__heading strong {
+  order: 1;
   flex: 1;
+  text-align: left;
+}
+
+.leaf-item__name {
+  text-align: left;
 }
 
 .node-card__actions {
@@ -507,17 +637,36 @@ h3 {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-self: stretch;
+  padding-top: 2px;
 }
 
 .node-card__header-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   align-items: stretch;
-  justify-content: space-between;
+  padding: 12px 12px 0;
 }
 
 .node-card__header {
   flex: 1 1 auto;
+}
+
+.node-card__header-row > .node-card__header {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.node-card__header-row > .node-card__header.is-open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.node-card__header-row > .node-card__header:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .button--tiny {
@@ -586,6 +735,13 @@ h3 {
   cursor: pointer;
 }
 
+.leaf-item .button,
+.leaf-item .stepper-button,
+.leaf-item .icon-button,
+.leaf-item input[type="range"] {
+  cursor: pointer;
+}
+
 .leaf-item__meta,
 .archive-row__numbers,
 .leaf-result__meta {
@@ -605,6 +761,12 @@ h3 {
   flex-wrap: wrap;
   align-items: center;
   margin-top: 6px;
+}
+
+.leaf-item > .icon-button[data-action="toggle-leaf-menu"] {
+  position: absolute;
+  top: 14px;
+  right: 14px;
 }
 
 .chip--ghost {

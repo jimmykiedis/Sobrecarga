@@ -1,6 +1,7 @@
 import { renderRadarChart } from "./radarChart.js";
 import { renderStatusBar, statusLabels } from "./moodPanel.js";
 import { renderLeafModal } from "./adviceModal.js";
+import { renderOrganogramSvg } from "./organogram.js";
 import { getActiveLeaves, getLeafDisplayName } from "../services/variableService.js";
 import { average, progressBetween, formatPercent } from "../utils/calculations.js";
 import { formatDateTime, horizonLabel, horizonOptions, horizonValueToIndex } from "../utils/dates.js";
@@ -39,6 +40,7 @@ export const createDashboardMarkup = (state) => {
     ...item,
     value: item.value,
   }));
+  const organogramSnapshot = state.organogram?.latest || null;
 
   const filteredLeaves = findLeaves(
     activeLeaves.map((leaf) => ({
@@ -131,6 +133,87 @@ export const createDashboardMarkup = (state) => {
           <button type="button" class="button button--ghost" data-action="sign-out">Sair</button>
         </div>
       </header>
+
+      <section class="card dashboard-card dashboard-card--wide session-card" data-dashboard-section="session-current">
+        <header class="card__header">
+          <div>
+            <p class="eyebrow">Card 1</p>
+            <h3>Sessão atual</h3>
+          </div>
+          <div class="session-card__status">
+            <span class="session-card__emoji">${moodEmoji}</span>
+            <div>
+              <strong data-summary="session-mood">${summary.mood.label}</strong>
+              <small>Estado emocional atual</small>
+            </div>
+          </div>
+        </header>
+        <div class="overview-grid session-card__grid">
+          <div class="overview-panel session-card__panel">
+            <div class="session-card__intro">
+              <div class="hero__emoji">${moodEmoji}</div>
+              <div>
+                <p class="eyebrow">Sessão atual</p>
+                <h2>O que importa agora, sem repetir informação demais.</h2>
+                <p class="hero__copy">
+                  O resumo principal concentra o estado emocional, a média das cardinais e o próximo passo.
+                  Os dados menos prioritários ficam no bloco secundário, com menos peso visual.
+                </p>
+              </div>
+            </div>
+            <div class="hero__stats session-card__stats">
+              <div class="stat">
+                <span class="stat__label">Estado</span>
+                <strong data-summary="session-state">${summary.mood.label}</strong>
+              </div>
+              <div class="stat">
+                <span class="stat__label">Cardinais</span>
+                <strong data-summary="session-average-cardinal">${formatPercent(avgCardinal)}</strong>
+              </div>
+              <div class="stat">
+                <span class="stat__label">Folhas alteradas</span>
+                <strong data-summary="session-changed-leaves">${changedLeaves.length}</strong>
+              </div>
+              <div class="stat">
+                <span class="stat__label">Próximo passo</span>
+                <strong data-summary="session-next-step">${currentNextLeaf?.name || "Definir"}</strong>
+              </div>
+            </div>
+            <div class="session-card__details">
+              <div class="session-card__detail-block">
+                <p class="overview-panel__title">Resumo rápido</p>
+                <ul class="summary-list session-card__summary">
+                  <li><span>Estado emocional</span><strong data-summary="overview-mood">${summary.mood.label}</strong></li>
+                  <li><span>Média das cardinais</span><strong data-summary="overview-average-cardinal">${summary.averageCardinal.toFixed(1)}</strong></li>
+                  <li><span>Progresso médio das folhas alteradas</span><strong data-summary="overview-progress-average">${summary.progressAverage.toFixed(1)}%</strong></li>
+                  <li><span>Próximo passo</span><strong data-summary="overview-next-step">${currentNextLeaf?.name || "Definir"}</strong></li>
+                </ul>
+              </div>
+              <div class="session-card__detail-block session-card__detail-block--subtle">
+                <p class="overview-panel__title">Contexto secundário</p>
+                <div class="session-card__meta">
+                  <div class="session-card__meta-item">
+                    <span>Atualizado em</span>
+                    <strong data-summary="session-updated-at">${formatDateTime(state.updatedAt)}</strong>
+                  </div>
+                  <div class="session-card__meta-item">
+                    <span>Sincronização</span>
+                    <strong data-summary="session-last-saved-at">${state.ui?.lastSavedAt ? formatDateTime(state.ui.lastSavedAt) : "Ainda não enviado"}</strong>
+                  </div>
+                  <div class="session-card__meta-item">
+                    <span>Alterações recentes</span>
+                    <strong data-summary="session-recent-changes">${changedLeaves.length}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="overview-panel overview-panel--chart session-card__chart" data-dashboard-section="overview-chart">
+            <p class="overview-panel__title">Radar da sessão</p>
+            ${renderRadarChart(radarItems)}
+          </div>
+        </div>
+      </section>
 
       <section class="hero card card--hero" data-dashboard-section="hero">
         <div class="hero__text">
@@ -513,6 +596,55 @@ export const createDashboardMarkup = (state) => {
                       .join("")}
                   </tbody>
                 </table>
+              </div>
+            </article>
+
+            <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="organogram">
+              <header class="card__header">
+                <div>
+                  <p class="eyebrow">Card 13</p>
+                  <h3>Organograma horizontal</h3>
+                </div>
+                <span class="chip chip--filled">
+                  ${organogramSnapshot ? `Gerado em ${formatDateTime(organogramSnapshot.generatedAt)}` : "Ainda não gerado"}
+                </span>
+              </header>
+              <div class="organogram-card">
+                <div class="organogram-card__toolbar">
+                  <button type="button" class="button button--soft" data-action="generate-organogram">
+                    ${organogramSnapshot ? "Regenerar organograma" : "Gerar organograma"}
+                  </button>
+                  ${organogramSnapshot ? `
+                    <button type="button" class="button button--ghost" data-action="export-organogram">
+                      Baixar PNG
+                    </button>
+                    <button type="button" class="button button--ghost" data-action="share-organogram">
+                      Compartilhar
+                    </button>
+                  ` : ""}
+                </div>
+                <div class="organogram-stage ${organogramSnapshot ? "is-ready" : ""}">
+                  ${organogramSnapshot
+                    ? renderOrganogramSvg(organogramSnapshot)
+                    : `
+                      <div class="organogram-empty">
+                        <p class="eyebrow">Pré-visualização bloqueada</p>
+                        <h4>Gere o organograma para criar a versão mais recente.</h4>
+                        <p>O arquivo fica salvo no aparelho e sincroniza com o Firebase junto com o workspace atual.</p>
+                      </div>
+                    `}
+                </div>
+                <div class="organogram-card__meta">
+                  <span data-summary="organogram-generated-at">
+                    ${organogramSnapshot ? formatDateTime(organogramSnapshot.generatedAt) : "Nunca gerado"}
+                  </span>
+                  <span data-summary="organogram-leaf-count">
+                    ${organogramSnapshot ? organogramSnapshot.metrics.leafCount : 0} folhas
+                  </span>
+                  <span data-summary="organogram-node-count">
+                    ${organogramSnapshot ? organogramSnapshot.metrics.nodeCount : 0} galhos
+                  </span>
+                </div>
               </div>
             </article>
           </div>
