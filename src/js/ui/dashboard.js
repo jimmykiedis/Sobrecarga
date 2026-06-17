@@ -454,6 +454,16 @@ export const createDashboardMarkup = (state) => {
           ${state.ui?.saving ? "Salvando..." : "Salvar"}
         </button>
       </footer>
+
+      <button
+        type="button"
+        class="scroll-top-fab"
+        data-action="scroll-top"
+        aria-label="Voltar ao topo"
+        aria-hidden="true"
+      >
+        ↑ Topo
+      </button>
     </div>
 
     ${state.modalOpen ? renderLeafModal({ leaves: filteredLeaves, query: state.leafSearchQuery, selectedLeafId: state.nextStep.leafId }) : ""}

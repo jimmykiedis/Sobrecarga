@@ -1,6 +1,7 @@
 html,
 body {
   min-height: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -11,6 +12,8 @@ body {
     radial-gradient(circle at top left, rgba(245, 158, 11, 0.18), transparent 30%),
     radial-gradient(circle at top right, rgba(16, 185, 129, 0.14), transparent 26%),
     linear-gradient(180deg, #050816 0%, #09111f 48%, #050816 100%);
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
 }
 
 body::before {
@@ -27,6 +30,14 @@ body::before {
 
 #app {
   min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea,
+a {
+  touch-action: manipulation;
 }
 
 .shell {

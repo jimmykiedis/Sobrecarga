@@ -29,6 +29,7 @@ import { buildReviewSummary } from "./services/reviewService.js";
 
 const STORAGE_PREFIX = "sobrecarga-state:";
 const app = document.getElementById("app");
+const SCROLL_TOP_REVEAL_OFFSET = 160;
 
 const state = {
   user: null,
@@ -45,6 +46,8 @@ const state = {
 
 let dashboardEventsBound = false;
 let leafSearchTimer = null;
+let scrollTopSyncRaf = null;
+let scrollTopBehaviorBound = false;
 const expandedNodeKeys = new Set();
 
 const cloneState = (value) => JSON.parse(JSON.stringify(value));
@@ -136,6 +139,7 @@ const renderDashboard = () => {
     if (chart) {
       chart.classList.add("is-ready");
     }
+    syncScrollTopButtonVisibility();
   });
 };
 
@@ -170,7 +174,38 @@ const patchDashboardSections = (selectors) => {
     if (chart) {
       chart.classList.add("is-ready");
     }
+    syncScrollTopButtonVisibility();
   });
+};
+
+const getScrollTopButton = () => app.querySelector('[data-action="scroll-top"]');
+
+const syncScrollTopButtonVisibility = () => {
+  const button = getScrollTopButton();
+  if (!button) return;
+
+  const scrollRoot = document.scrollingElement || document.documentElement;
+  const currentScrollTop = scrollRoot.scrollTop ?? window.scrollY;
+  const maxScrollableDistance = Math.max(0, scrollRoot.scrollHeight - window.innerHeight);
+  const shouldShow = maxScrollableDistance > 0 && currentScrollTop >= maxScrollableDistance - SCROLL_TOP_REVEAL_OFFSET;
+
+  button.classList.toggle("is-visible", shouldShow);
+  button.setAttribute("aria-hidden", shouldShow ? "false" : "true");
+};
+
+const scheduleScrollTopButtonVisibilitySync = () => {
+  if (scrollTopSyncRaf) return;
+  scrollTopSyncRaf = window.requestAnimationFrame(() => {
+    scrollTopSyncRaf = null;
+    syncScrollTopButtonVisibility();
+  });
+};
+
+const bindScrollTopButtonBehavior = () => {
+  if (scrollTopBehaviorBound) return;
+  window.addEventListener("scroll", scheduleScrollTopButtonVisibilitySync, { passive: true });
+  window.addEventListener("resize", scheduleScrollTopButtonVisibilitySync, { passive: true });
+  scrollTopBehaviorBound = true;
 };
 
 const refreshSummaryBindings = () => {
@@ -336,6 +371,13 @@ const handleManualFirestoreSave = async () => {
   }
 };
 
+const handleScrollTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+};
+
 const bindDashboardEvents = () => {
   if (dashboardEventsBound) return;
   app.addEventListener("click", handleDashboardClick);
@@ -396,6 +438,11 @@ function handleDashboardClick(event) {
 
   if (action === "save-firestore") {
     handleManualFirestoreSave();
+    return;
+  }
+
+  if (action === "scroll-top") {
+    handleScrollTop();
     return;
   }
 
@@ -594,6 +641,7 @@ window.addEventListener("storage", (event) => {
 });
 
 setupAuthListener();
+bindScrollTopButtonBehavior();
 render();
 
 if ("serviceWorker" in navigator) {
