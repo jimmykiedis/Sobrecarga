@@ -29,6 +29,7 @@ import {
   saveUserWorkspace,
 } from "./firebase/firebase.js";
 import { createDashboardMarkup } from "./ui/dashboard.js";
+import { statusLabels } from "./ui/moodPanel.js";
 import { renderLeafResults } from "./ui/adviceModal.js";
 import { getMoodFromAverageValue } from "./services/moodService.js";
 import { findLeaves } from "./services/adviceService.js";
@@ -51,6 +52,15 @@ const state = {
   dirty: false,
   lastSavedAt: null,
   localState: createDefaultState(),
+  drafts: {
+    weeklyReviewScore: null,
+    weeklyReviewNote: null,
+    nextStepText: null,
+  },
+  panelStates: {
+    weeklyReviewCollapsed: false,
+    nextStepCollapsed: false,
+  },
 };
 
 let dashboardEventsBound = false;
@@ -156,6 +166,8 @@ const renderDashboard = () => {
 const buildDashboardMarkup = () =>
   createDashboardMarkup({
     ...state.localState,
+    drafts: state.drafts,
+    panelStates: state.panelStates,
     ui: {
       dirty: state.dirty,
       syncMessage: state.syncMessage,
@@ -251,6 +263,53 @@ const refreshSummaryBindings = () => {
   setText('[data-summary="overview-next-step"]', currentNextLeaf?.name || "Definir");
 };
 
+const refreshWeeklyReviewPanel = () => {
+  const section = app.querySelector('[data-dashboard-section="weekly-review"]');
+  if (!section) return;
+
+  const score =
+    state.drafts.weeklyReviewScore !== null
+      ? Number(state.drafts.weeklyReviewScore)
+      : Number(state.localState.weeklyReview?.moodValue ?? 0);
+  const scoreText = `${score > 0 ? "+" : ""}${score}`;
+  const scoreLabel = statusLabels[score] || "Neutro";
+
+  const currentScore = section.querySelector("[data-weekly-review-score-current]");
+  if (currentScore) {
+    currentScore.textContent = scoreText;
+  }
+
+  const currentLabel = section.querySelector("[data-weekly-review-score-label]");
+  if (currentLabel) {
+    currentLabel.textContent = scoreLabel;
+  }
+
+  const input = section.querySelector('[data-field="weekly-review-score"]');
+  if (input) {
+    input.value = String(score);
+  }
+
+  section.querySelectorAll("[data-weekly-score-step]").forEach((button) => {
+    const buttonScore = Number(button.dataset.weeklyScoreStep);
+    button.classList.toggle("is-active", buttonScore === score);
+  });
+
+  section.querySelectorAll("[data-weekly-score-label]").forEach((label) => {
+    const labelScore = Number(label.dataset.weeklyScoreLabel);
+    label.classList.toggle("is-active", labelScore === score);
+  });
+};
+
+const refreshNextStepPanel = () => {
+  const section = app.querySelector('[data-dashboard-section="next-step"]');
+  if (!section) return;
+
+  const textarea = section.querySelector('[data-field="next-step-text"]');
+  if (textarea && state.drafts.nextStepText !== null) {
+    textarea.value = state.drafts.nextStepText;
+  }
+};
+
 const refreshRadarChart = () => {
   const chart = app.querySelector('[data-dashboard-section="overview-chart"]');
   if (!chart) return;
@@ -325,6 +384,62 @@ const setLocalStatePartial = (updater, partialSelectors) => {
   refreshSummaryBindings();
   patchDashboardSections(partialSelectors);
   saveState();
+};
+
+const setWeeklyReviewScoreLocal = (score) => {
+  state.drafts.weeklyReviewScore = Number(score);
+  refreshWeeklyReviewPanel();
+};
+
+const getWeeklyReviewNoteDraft = () =>
+  state.drafts.weeklyReviewNote !== null ? state.drafts.weeklyReviewNote : (state.localState.weeklyReview.note || "");
+
+const getNextStepTextDraft = () =>
+  state.drafts.nextStepText !== null ? state.drafts.nextStepText : (state.localState.nextStep.text || "");
+
+const commitWeeklyReviewNote = () => {
+  const note = getWeeklyReviewNoteDraft();
+  const score =
+    state.drafts.weeklyReviewScore !== null
+      ? Number(state.drafts.weeklyReviewScore)
+      : Number(state.localState.weeklyReview?.moodValue ?? 0);
+  state.drafts.weeklyReviewNote = note;
+  state.drafts.weeklyReviewScore = score;
+  setLocalStatePartial(
+    (current) =>
+      setWeeklyReviewNote(
+        setWeeklyReviewScore(current, score),
+        note
+      ),
+    ['[data-dashboard-section="weekly-review"]']
+  );
+  refreshWeeklyReviewPanel();
+};
+
+const commitNextStepText = () => {
+  const text = getNextStepTextDraft();
+  state.drafts.nextStepText = text;
+  setLocalStatePartial(
+    (current) => ({
+      ...current,
+      nextStep: {
+        ...current.nextStep,
+        text,
+      },
+    }),
+    ['[data-dashboard-section="next-step"]', '[data-summary="overview-next-step"]']
+  );
+  refreshNextStepPanel();
+};
+
+const setWeeklyReviewCollapsed = (collapsed) => {
+  state.panelStates.weeklyReviewCollapsed = Boolean(collapsed);
+  renderDashboard();
+};
+
+const setNextStepCollapsed = (collapsed) => {
+  state.panelStates.nextStepCollapsed = Boolean(collapsed);
+  renderDashboard();
 };
 
 const renderLoading = () => {
@@ -546,12 +661,34 @@ function handleDashboardClick(event) {
 
   if (action === "set-weekly-score") {
     const value = Number(target.dataset.value);
-    setLocalState((current) => setWeeklyReviewScore(current, value));
+    setWeeklyReviewScoreLocal(value);
+    return;
+  }
+
+  if (action === "commit-weekly-review") {
+    commitWeeklyReviewNote();
+    setWeeklyReviewCollapsed(true);
+    return;
+  }
+
+  if (action === "toggle-weekly-review-card") {
+    setWeeklyReviewCollapsed(false);
     return;
   }
 
   if (action === "open-modal") {
     setLocalState((current) => toggleModal(current, true));
+    return;
+  }
+
+  if (action === "commit-next-step") {
+    commitNextStepText();
+    setNextStepCollapsed(true);
+    return;
+  }
+
+  if (action === "toggle-next-step-card") {
+    setNextStepCollapsed(false);
     return;
   }
 
@@ -637,13 +774,17 @@ function handleDashboardInput(event) {
 
   if (field.dataset.field === "weekly-review-score") {
     const value = Number(field.value);
-    setLocalState((current) => ({
-      ...current,
-      weeklyReview: {
-        ...current.weeklyReview,
-        moodValue: value,
-      },
-    }));
+    setWeeklyReviewScoreLocal(value);
+    return;
+  }
+
+  if (field.dataset.field === "weekly-review-note") {
+    state.drafts.weeklyReviewNote = field.value;
+    return;
+  }
+
+  if (field.dataset.field === "next-step-text") {
+    state.drafts.nextStepText = field.value;
     return;
   }
 }
@@ -675,22 +816,6 @@ function handleDashboardChange(event) {
   const field = event.target.closest("[data-field]");
   if (!field) return;
 
-  if (field.dataset.field === "weekly-review-note") {
-    setLocalState((current) => setWeeklyReviewNote(current, field.value));
-    return;
-  }
-
-  if (field.dataset.field === "next-step-text") {
-    setLocalState((current) => ({
-      ...current,
-      nextStep: {
-        ...current.nextStep,
-        text: field.value,
-      },
-    }));
-    return;
-  }
-
   commitLeafHorizon(field);
 }
 
@@ -719,6 +844,15 @@ const setupAuthListener = async () => {
         state.error = "";
         render();
         state.localState = loadSavedState(state.user);
+        state.drafts = {
+          weeklyReviewScore: null,
+          weeklyReviewNote: null,
+          nextStepText: null,
+        };
+        state.panelStates = {
+          weeklyReviewCollapsed: false,
+          nextStepCollapsed: false,
+        };
         state.loading = false;
         state.dirty = false;
         state.syncMessage = "Workspace atualizado com a árvore atual";
@@ -730,6 +864,15 @@ const setupAuthListener = async () => {
       state.authReady = true;
       state.loading = false;
       state.localState = createDefaultState();
+      state.drafts = {
+        weeklyReviewScore: null,
+        weeklyReviewNote: null,
+        nextStepText: null,
+      };
+      state.panelStates = {
+        weeklyReviewCollapsed: false,
+        nextStepCollapsed: false,
+      };
       expandedNodeKeys.clear();
       openLeafMenuId = null;
       clearTimeout(leafSearchTimer);

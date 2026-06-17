@@ -20,6 +20,7 @@ export const renderStatusBar = (selectedValue) => {
           class="status-bar__step ${index === activeIndex ? "is-active" : ""}"
           data-action="set-weekly-score"
           data-value="${value}"
+          data-weekly-score-step="${value}"
           aria-label="${statusLabels[value]}"
         >
           <span>${value > 0 ? "+" : ""}${value}</span>
@@ -31,7 +32,10 @@ export const renderStatusBar = (selectedValue) => {
   const ticks = statusScale
     .map(
       (value, index) => `
-        <span class="status-bar__label ${index === activeIndex ? "is-active" : ""}">
+        <span
+          class="status-bar__label ${index === activeIndex ? "is-active" : ""}"
+          data-weekly-score-label="${value}"
+        >
           ${statusLabels[value]}
         </span>
       `

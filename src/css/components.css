@@ -22,6 +22,24 @@
   margin-bottom: 16px;
 }
 
+.card__body {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.card__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.card__footer--split {
+  justify-content: space-between;
+}
+
 .eyebrow {
   margin: 0 0 8px;
   text-transform: uppercase;
@@ -231,6 +249,8 @@ h3 {
 .field {
   display: grid;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .field span {
@@ -241,6 +261,7 @@ h3 {
 .field input,
 .field textarea {
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.04);
@@ -249,6 +270,15 @@ h3 {
   font: inherit;
   outline: none;
   resize: vertical;
+  min-width: 0;
+}
+
+.field input {
+  min-height: 48px;
+}
+
+.field textarea {
+  min-height: 124px;
 }
 
 .field input:focus,
@@ -453,8 +483,7 @@ h3 {
 
 .leaf-item__heading,
 .leaf-result,
-.archive-row,
-.next-step-panel {
+.archive-row {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -606,6 +635,7 @@ h3 {
 
 .review-panel {
   gap: 14px;
+  min-width: 0;
 }
 
 .review-panel__score {
@@ -678,6 +708,18 @@ h3 {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.card__header-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.card--collapsed .card__body {
+  display: none;
+}
+
 .mood-chip {
   display: grid;
   justify-items: start;
@@ -700,7 +742,19 @@ h3 {
 }
 
 .next-step-panel {
+  display: grid;
   gap: 16px;
+  min-width: 0;
+}
+
+.next-step-panel > * {
+  min-width: 0;
+}
+
+.panel-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .next-step-panel__label {

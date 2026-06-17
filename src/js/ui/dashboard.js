@@ -25,6 +25,16 @@ export const createDashboardMarkup = (state) => {
   const openNodeKeys = new Set(state.ui?.openNodeKeys || []);
   const activeLeaves = getActiveLeaves(state.baseVariables);
   const showHiddenLeaves = Boolean(state.ui?.showHiddenLeaves);
+  const weeklyReviewCollapsed = Boolean(state.panelStates?.weeklyReviewCollapsed);
+  const nextStepCollapsed = Boolean(state.panelStates?.nextStepCollapsed);
+  const weeklyReviewScore =
+    state.drafts?.weeklyReviewScore !== null
+      ? Number(state.drafts.weeklyReviewScore)
+      : Number(state.weeklyReview.moodValue ?? 0);
+  const weeklyReviewNote =
+    state.drafts?.weeklyReviewNote !== null ? state.drafts.weeklyReviewNote : state.weeklyReview.note || "";
+  const nextStepText =
+    state.drafts?.nextStepText !== null ? state.drafts.nextStepText : state.nextStep.text || "";
   const radarItems = state.cardinals.map((item) => ({
     ...item,
     value: item.value,
@@ -327,48 +337,62 @@ export const createDashboardMarkup = (state) => {
           })
           .join("")}
 
-        <article class="card dashboard-card dashboard-card--wide">
+                <article class="card dashboard-card dashboard-card--wide ${weeklyReviewCollapsed ? "card--collapsed" : ""}" data-dashboard-section="weekly-review">
           <header class="card__header">
             <div>
               <p class="eyebrow">Card 8</p>
               <h3>Como foi o nosso desenvolvimento desde que definimos este passo?</h3>
             </div>
+            ${weeklyReviewCollapsed ? `<button type="button" class="button button--ghost" data-action="toggle-weekly-review-card">Editar</button>` : ""}
           </header>
-          <div class="review-panel">
-            <p class="review-panel__score">
-              Resultado atual:
-              <strong>
-                ${state.weeklyReview.moodValue > 0 ? "+" : ""}
-                ${state.weeklyReview.moodValue}
-              </strong>
-              <span>${statusLabels[state.weeklyReview.moodValue] || "Neutro"}</span>
-            </p>
-            ${renderStatusBar(state.weeklyReview.moodValue)}
-            <label class="field">
-              <span>Observações rápidas</span>
-              <textarea rows="3" data-field="weekly-review-note" placeholder="O que avançou, travou ou ficou mais claro?">${state.weeklyReview.note || ""}</textarea>
-            </label>
+          <div class="card__body">
+            <div class="review-panel">
+              <p class="review-panel__score">
+                Resultado atual:
+                <strong data-weekly-review-score-current>
+                  ${weeklyReviewScore > 0 ? "+" : ""}
+                  ${weeklyReviewScore}
+                </strong>
+                <span data-weekly-review-score-label>${statusLabels[weeklyReviewScore] || "Neutro"}</span>
+              </p>
+              ${renderStatusBar(weeklyReviewScore)}
+              <label class="field">
+                <span>Observações rápidas</span>
+                <textarea rows="3" data-field="weekly-review-note" placeholder="O que avançou, travou ou ficou mais claro?">${weeklyReviewNote}</textarea>
+              </label>
+              <p class="panel-note">O texto acima fica como rascunho até clicar em Feito.</p>
+            </div>
+            <footer class="card__footer">
+              <button type="button" class="button button--soft" data-action="commit-weekly-review">Feito</button>
+            </footer>
           </div>
         </article>
 
-        <article class="card dashboard-card dashboard-card--wide">
+                <article class="card dashboard-card dashboard-card--wide ${nextStepCollapsed ? "card--collapsed" : ""}" data-dashboard-section="next-step">
           <header class="card__header">
             <div>
               <p class="eyebrow">Card 9</p>
               <h3>Qual é o próximo passo concreto que melhoraria minha vida nos próximos 7 dias?</h3>
             </div>
-            <button type="button" class="button button--soft" data-action="open-modal">Procurar folhas</button>
+            ${nextStepCollapsed ? `<button type="button" class="button button--ghost" data-action="toggle-next-step-card">Editar</button>` : ""}
           </header>
-          <div class="next-step-panel">
-            <div>
-              <p class="next-step-panel__label">Folha escolhida</p>
-              <strong>${currentNextLeaf?.name || "Nenhuma folha selecionada"}</strong>
-              <p>${currentNextLeaf?.cardinalName || ""} • ${currentNextLeaf?.nodeName || ""} • ${currentNextLeaf ? currentNextLeaf.currentValue : "--"} • ${currentNextLeaf ? currentNextLeaf.horizonLabel : ""}</p>
+          <div class="card__body">
+            <div class="next-step-panel">
+              <div>
+                <p class="next-step-panel__label">Folha escolhida</p>
+                <strong>${currentNextLeaf?.name || "Nenhuma folha selecionada"}</strong>
+                <p>${currentNextLeaf?.cardinalName || ""} • ${currentNextLeaf?.nodeName || ""} • ${currentNextLeaf ? currentNextLeaf.currentValue : "--"} • ${currentNextLeaf ? currentNextLeaf.horizonLabel : ""}</p>
+              </div>
+              <label class="field">
+                <span>Frase do próximo passo</span>
+                <textarea rows="3" data-field="next-step-text" placeholder="Escreva a ação concreta...">${nextStepText}</textarea>
+              </label>
+              <p class="panel-note">A frase acima fica em rascunho até clicar em Feito.</p>
+              <div class="card__footer card__footer--split">
+                <button type="button" class="button button--soft" data-action="open-modal">Procurar folhas</button>
+                <button type="button" class="button button--soft" data-action="commit-next-step">Feito</button>
+              </div>
             </div>
-            <label class="field">
-              <span>Frase do próximo passo</span>
-              <textarea rows="3" data-field="next-step-text" placeholder="Escreva a ação concreta...">${state.nextStep.text || ""}</textarea>
-            </label>
           </div>
         </article>
 
