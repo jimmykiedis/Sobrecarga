@@ -1,0 +1,682 @@
+[
+  {
+    "folha": "Rede de Apoio",
+    "mensagens": [
+      { "indice": 1, "texto": "Você está construindo sua rede aos poucos — cada conexão conta. Continue!", "maior_que_79": false },
+      { "indice": 2, "texto": "Mais da metade do caminho percorrido! Agora é a hora de dar o próximo passo e fortalecer seus laços.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você já tem uma base. Que tal entrar em contato com alguém de confiança hoje?", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você está cultivando relações de verdade. Isso faz toda a diferença.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua rede de apoio está sólida — você investe nas pessoas certas. Excelente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Socialização",
+    "mensagens": [
+      { "indice": 1, "texto": "Socializar pode ser desafiador, mas você já está no caminho certo. Um passo de cada vez!", "maior_que_79": false },
+      { "indice": 2, "texto": "Que tal marcar um encontro com alguém esta semana? Pequenos gestos fazem grande diferença.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está avançando bem! Aproveite para ampliar ainda mais seu círculo social.", "maior_que_79": false },
+      { "indice": 4, "texto": "Você está se conectando com as pessoas de forma incrível. Continue assim!", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua vida social está florescendo — e isso reflete diretamente no seu bem-estar. Parabéns!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Clareza de Valores",
+    "mensagens": [
+      { "indice": 1, "texto": "Identificar o que importa de verdade leva tempo. Você já está se aprofundando nisso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Reserve um momento hoje para refletir: o que guia suas decisões? Você está no caminho.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está desenvolvendo uma bússola interna poderosa. Siga em frente!", "maior_que_79": false },
+      { "indice": 4, "texto": "Seus valores estão bem definidos e isso se reflete nas suas escolhas. Admirável!", "maior_que_79": true },
+      { "indice": 5, "texto": "Viver alinhado aos seus valores é um presente. Você está colhendo os frutos disso!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Direção de Vida",
+    "mensagens": [
+      { "indice": 1, "texto": "Ter uma direção clara é transformador. Você já está traçando o seu rumo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Dê um passo concreto hoje em direção ao futuro que você deseja. Você consegue!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está ganhando clareza sobre para onde quer ir. Continue investindo nisso!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você sabe onde quer chegar e está agindo com propósito.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua direção de vida está bem estabelecida. Isso inspira quem está ao seu redor!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Legado Pessoal",
+    "mensagens": [
+      { "indice": 1, "texto": "Pensar no legado é pensar no que você quer deixar para o mundo. Você já começou!", "maior_que_79": false },
+      { "indice": 2, "texto": "Uma ação significativa hoje pode ser parte do seu legado. O que você vai fazer?", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está construindo algo que vai além do presente. Continue com essa visão!", "maior_que_79": false },
+      { "indice": 4, "texto": "Seu legado já está sendo construído com consistência e propósito. Incrível!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está deixando marcas positivas onde passa. Isso é legado de verdade!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Reduzir Estresse",
+    "mensagens": [
+      { "indice": 1, "texto": "Reduzir o estresse exige prática diária. Você já está prestando atenção nisso — ótimo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, reserve 5 minutos só para respirar. Pequenas pausas fazem grande diferença.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está criando hábitos que afastam o estresse. Continue nessa direção!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela maneira como você está gerenciando o estresse! Seu equilíbrio é notável.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você desenvolveu ferramentas reais para lidar com a pressão. Isso é maturidade emocional!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Melhorar Equilíbrio Emocional",
+    "mensagens": [
+      { "indice": 1, "texto": "Equilíbrio emocional se constrói com tempo e autoconhecimento. Você está no caminho!", "maior_que_79": false },
+      { "indice": 2, "texto": "Que tal identificar uma emoção que você quer trabalhar hoje? Você é capaz!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está ficando mais inteiro a cada dia. Siga em frente!", "maior_que_79": false },
+      { "indice": 4, "texto": "Seu equilíbrio emocional é uma conquista que se reflete em todas as áreas da sua vida. Parabéns!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você lida com suas emoções com maturidade e consciência. Isso é inspirador!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Dormir 7h",
+    "mensagens": [
+      { "indice": 1, "texto": "Uma boa noite de sono começa com escolhas durante o dia. Você já está mais atento a isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Tente dormir 30 minutos mais cedo hoje. Seu corpo vai agradecer!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está priorizando seu descanso. Continue e colha os benefícios!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns por respeitar seu sono! Isso está transformando sua energia e disposição.", "maior_que_79": true },
+      { "indice": 5, "texto": "Dormir bem é um superpoder — e você está dominando isso. Excelente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Voltar a Treinar",
+    "mensagens": [
+      { "indice": 1, "texto": "Cada treino conta, mesmo os menores. Você já está dando os primeiros passos!", "maior_que_79": false },
+      { "indice": 2, "texto": "Comece com 20 minutos hoje. O importante é manter o movimento!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está criando consistência. Siga em frente e o resultado vai aparecer!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns por ter voltado a treinar! Sua dedicação está fazendo a diferença.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você recuperou sua rotina de treinos com determinação. Isso é força de vontade de verdade!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Melhorar Energia",
+    "mensagens": [
+      { "indice": 1, "texto": "Sua energia está melhorando! Continue investindo em sono, alimentação e movimento.", "maior_que_79": false },
+      { "indice": 2, "texto": "Que tal identificar o que mais drena sua energia hoje e agir sobre isso?", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está no caminho certo para se sentir mais disposto a cada dia!", "maior_que_79": false },
+      { "indice": 4, "texto": "Sua vitalidade está em alta! Fica claro que você está cuidando de si mesmo.", "maior_que_79": true },
+      { "indice": 5, "texto": "Parabéns pelo nível de energia que você conquistou! Isso reflete hábitos consistentes.", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Rotina Estável do Filho",
+    "mensagens": [
+      { "indice": 1, "texto": "Criar uma rotina leva tempo e ajustes. Você está sendo um ótimo pai/mãe ao investir nisso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Escolha um horário fixo para uma atividade do seu filho hoje. Consistência é tudo!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está construindo segurança para o seu filho. Isso é muito valioso!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! A rotina do seu filho está firme e isso traz estabilidade para toda a família.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você criou uma estrutura incrível para o seu filho. Ele se beneficia disso todos os dias!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Separação Saudável",
+    "mensagens": [
+      { "indice": 1, "texto": "Separações são difíceis, mas você está lidando com isso de forma matura. Parabéns pela coragem!", "maior_que_79": false },
+      { "indice": 2, "texto": "Cuide de você hoje. Uma separação saudável começa com o seu próprio equilíbrio.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está construindo um novo capítulo com respeito e maturidade. Continue assim!", "maior_que_79": false },
+      { "indice": 4, "texto": "Você está conduzindo essa fase com muita inteligência emocional. Isso é admirável!", "maior_que_79": true },
+      { "indice": 5, "texto": "Parabéns! Sua separação está sendo gerida com respeito, e isso protege a todos.", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Melhor Comunicação",
+    "mensagens": [
+      { "indice": 1, "texto": "Comunicar melhor começa com escutar mais. Você já está prestando atenção a isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, tente expressar uma necessidade com clareza e gentileza. Você consegue!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está evoluindo na forma como se comunica. Continue praticando!", "maior_que_79": false },
+      { "indice": 4, "texto": "Sua comunicação está mais clara e empática. Isso melhora todos os seus relacionamentos!", "maior_que_79": true },
+      { "indice": 5, "texto": "Parabéns! Você se expressa com respeito e assertividade. Isso faz toda a diferença.", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Delegar Operação",
+    "mensagens": [
+      { "indice": 1, "texto": "Delegar é uma habilidade que se aprende. Você já está desenvolvendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Identifique uma tarefa que pode ser transferida hoje. Confiar na equipe é crescimento!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está aprendendo que não precisa fazer tudo sozinho. Isso é liderança de verdade!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você delega com clareza e confiança. Sua equipe cresce junto com você.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está liberando seu tempo para o que realmente importa. Isso é gestão inteligente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Crescimento da Empresa",
+    "mensagens": [
+      { "indice": 1, "texto": "Crescer exige estratégia e consistência. Você já está plantando as sementes certas!", "maior_que_79": false },
+      { "indice": 2, "texto": "Que ação você pode tomar hoje que vai impactar o crescimento amanhã? Aja agora!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está avançando. Continue focado e os resultados virão!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo crescimento que você está alcançando! Sua visão estratégica está se pagando.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua empresa está crescendo com solidez. Isso é resultado de muito trabalho e dedicação!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Liberdade Financeira",
+    "mensagens": [
+      { "indice": 1, "texto": "Liberdade financeira se constrói com decisões consistentes. Você já está no rumo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Revise suas despesas hoje e identifique onde pode otimizar. Cada real conta!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está construindo uma base financeira mais sólida a cada dia. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Suas escolhas financeiras estão te aproximando da liberdade que você merece.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está dominando suas finanças com inteligência e disciplina. Isso é transformador!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Desenvolvimento Pessoal",
+    "mensagens": [
+      { "indice": 1, "texto": "Investir em si mesmo é sempre um bom negócio. Você já está no caminho do crescimento!", "maior_que_79": false },
+      { "indice": 2, "texto": "Que habilidade você quer desenvolver esta semana? Dê o primeiro passo hoje!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está evoluindo como pessoa. Continue aprendendo e se desafiando!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo seu compromisso com o crescimento pessoal! Isso se reflete em tudo que você faz.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está se tornando uma versão melhor de si mesmo a cada dia. Isso é inspirador!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Valores",
+    "mensagens": [
+      { "indice": 1, "texto": "Conhecer seus valores é a base de tudo. Você está investindo nisso — ótimo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Pergunte-se hoje: minhas ações estão alinhadas com o que valorizo? Você está no caminho!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está clarificando o que realmente importa para você. Continue nessa jornada!", "maior_que_79": false },
+      { "indice": 4, "texto": "Seus valores são firmes e guiam suas decisões. Isso é uma base poderosa para a vida!", "maior_que_79": true },
+      { "indice": 5, "texto": "Parabéns! Você vive de acordo com o que acredita. Isso gera autenticidade e paz interior.", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Princípios",
+    "mensagens": [
+      { "indice": 1, "texto": "Princípios claros tornam decisões mais fáceis. Você está construindo os seus!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, pense em um princípio que quer reforçar na sua vida. Dê um passo concreto!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está fortalecendo o seu caráter com cada escolha consciente. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Seus princípios são sólidos e orientam sua vida com integridade. Parabéns!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você age com consistência e coerência. Isso constrói confiança em todos ao redor!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Propósito",
+    "mensagens": [
+      { "indice": 1, "texto": "Encontrar o propósito é uma jornada. Você já está fazendo as perguntas certas!", "maior_que_79": false },
+      { "indice": 2, "texto": "O que te faz sentir que vale a pena? Explore isso hoje. Seu propósito está emergindo!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está se aproximando do que dá sentido à sua vida. Continue explorando!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você age com propósito e isso torna cada dia mais significativo.", "maior_que_79": true },
+      { "indice": 5, "texto": "Seu propósito é claro e mobilizador. Isso é uma das maiores conquistas de uma vida!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Crise de Identidade",
+    "mensagens": [
+      { "indice": 1, "texto": "Questionar quem você é faz parte do crescimento. Você está se reconectando com você mesmo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, escreva três coisas que te definem com orgulho. Você tem muito a celebrar!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está encontrando sua identidade com coragem e honestidade. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns por ter atravessado essa fase com consciência. Você saiu mais forte e inteiro!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você se conhece profundamente e age com autenticidade. Isso é uma conquista enorme!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Solidão",
+    "mensagens": [
+      { "indice": 1, "texto": "Sentir solidão é um sinal para se reconectar. Você já está atentos a isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Entre em contato com alguém que importa para você hoje. Um pequeno gesto faz diferença!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está construindo conexões genuínas. Continue abrindo espaço para as pessoas!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você está cultivando relações e transformando a solidão em conexão.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você se cerca de pessoas que importam. Isso enriquece muito sua vida!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Futuro",
+    "mensagens": [
+      { "indice": 1, "texto": "Pensar no futuro com intenção é um ato de cuidado consigo mesmo. Você está fazendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Escreva uma visão concreta de como você quer estar daqui a um ano. O futuro começa agora!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está plantando hoje o que vai colher amanhã. Continue com essa visão!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você constrói seu futuro com planejamento e ação. Isso é muito admirável!", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua visão de futuro é clara e você age para realizá-la. Isso é poder pessoal real!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Humor",
+    "mensagens": [
+      { "indice": 1, "texto": "Seu humor pode melhorar com pequenos hábitos diários. Você está prestando atenção nisso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Que tal fazer algo que te coloca de bom humor hoje? Você merece isso!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está cuidando do seu estado emocional. Continue criando momentos de leveza!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você mantém um bom humor mesmo diante de desafios. Isso é resiliência!", "maior_que_79": true },
+      { "indice": 5, "texto": "Seu bom humor é contagiante e ilumina o ambiente ao redor. Isso é um dom!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Estresse",
+    "mensagens": [
+      { "indice": 1, "texto": "Reconhecer o estresse é o primeiro passo para superá-lo. Você já está fazendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Pause por 5 minutos hoje e respire fundo. Seu sistema nervoso vai agradecer!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está desenvolvendo resiliência ao estresse. Continue com suas práticas!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você está gerenciando o estresse com muito mais eficiência. Isso se nota!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você transformou a forma como lida com pressão. Isso é evolução real!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Ansiedade",
+    "mensagens": [
+      { "indice": 1, "texto": "Trabalhar a ansiedade exige paciência e ferramentas certas. Você está no caminho!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, observe um pensamento ansioso sem julgamento. Você tem controle sobre isso!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está aprendendo a lidar com a ansiedade de forma mais saudável. Parabéns!", "maior_que_79": false },
+      { "indice": 4, "texto": "Sua capacidade de gerenciar a ansiedade cresceu muito. Isso é uma conquista enorme!", "maior_que_79": true },
+      { "indice": 5, "texto": "Parabéns! Você transformou a ansiedade em combustível para agir. Isso é poderoso!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Autoconhecimento",
+    "mensagens": [
+      { "indice": 1, "texto": "Conhecer a si mesmo é a base de todas as mudanças. Você está investindo nisso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Reserve um momento hoje para refletir sobre seus padrões. O autoconhecimento ilumina!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está se entendendo cada vez melhor. Continue nessa jornada interior!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Seu autoconhecimento é profundo e guia suas escolhas com sabedoria.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você se conhece e age a partir desse conhecimento. Isso é maturidade rara!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Terapia",
+    "mensagens": [
+      { "indice": 1, "texto": "Buscar terapia é um ato de coragem e cuidado. Você está investindo em si mesmo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Aproveite sua próxima sessão para ser completamente honesto. A terapia trabalha por você!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está se comprometendo com seu processo terapêutico. Isso faz toda a diferença!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo seu comprometimento com a terapia! Os resultados estão aparecendo.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você transformou a terapia em uma ferramenta poderosa de crescimento. Excelente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Equilíbrio Emocional",
+    "mensagens": [
+      { "indice": 1, "texto": "O equilíbrio emocional é construído dia a dia. Você já está no processo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Que emoção você precisa acolher hoje? Dê espaço para ela sem julgamento.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está desenvolvendo uma relação mais saudável com suas emoções. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Seu equilíbrio emocional é uma conquista visível no seu dia a dia.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você lida com emoções intensas com maturidade e presença. Isso é admirável!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Sobrecarga Mental",
+    "mensagens": [
+      { "indice": 1, "texto": "Sua mente está sobrecarregada, mas você já está reconhecendo isso. Esse é o primeiro passo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Escreva tudo que está na sua cabeça hoje. Externalizar alivia a sobrecarga!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está encontrando formas de aliviar a sobrecarga mental. Continue nesse ritmo!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você está gerenciando melhor o fluxo de informações e tarefas. Isso é saúde mental!", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua mente está mais organizada e descansada. Isso eleva sua qualidade de vida toda!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Burnout",
+    "mensagens": [
+      { "indice": 1, "texto": "Reconhecer o burnout é fundamental. Você está cuidando de si mesmo ao enfrentar isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, elimine pelo menos uma tarefa não essencial. Proteger sua energia é prioridade!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está se recuperando com cuidado e consciência. Continue nesse processo!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela sua recuperação! Você aprendeu a reconhecer seus limites e respeitá-los.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você superou o burnout com resiliência e sabedoria. Isso é uma vitória enorme!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Sono",
+    "mensagens": [
+      { "indice": 1, "texto": "Melhorar o sono começa com pequenas mudanças de hábito. Você já está atentos a isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Tente desligar as telas 30 minutos antes de dormir hoje. Seu sono vai melhorar!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está priorizando o descanso. Continue e sinta a diferença na sua energia!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela qualidade do seu sono! Isso impacta positivamente toda a sua vida.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você dorme bem e acorda renovado. Isso é um pilar essencial da sua saúde!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Energia",
+    "mensagens": [
+      { "indice": 1, "texto": "Você está cuidando da sua energia. Continue identificando o que te revitaliza!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, faça uma coisa que te dá energia — por menor que seja. Você merece isso!", "maior_que_79": false },
+      { "indice": 3, "texto": "Sua energia está crescendo com seus novos hábitos. Continue investindo nisso!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Sua vitalidade está em alta e isso se reflete em tudo que você faz.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você irradia energia positiva. Isso é resultado de cuidado consistente consigo mesmo!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Exercícios",
+    "mensagens": [
+      { "indice": 1, "texto": "Mover o corpo é cuidar da mente. Você já está no caminho para uma rotina mais ativa!", "maior_que_79": false },
+      { "indice": 2, "texto": "Que tal uma caminhada de 15 minutos hoje? Pequenos movimentos constroem grandes hábitos!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está criando consistência nos exercícios. Continue e o corpo vai agradecer!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela sua dedicação aos exercícios! Sua saúde está agradecendo cada treino.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você tornou o movimento parte da sua rotina. Isso transforma corpo e mente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Alimentação",
+    "mensagens": [
+      { "indice": 1, "texto": "Cada refeição é uma oportunidade de cuidar de você. Você já está mais consciente disso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Adicione um alimento nutritivo à sua dieta hoje. Pequenas mudanças geram grandes resultados!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está melhorando sua alimentação de forma sustentável. Continue nesse ritmo!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelas suas escolhas alimentares! Você está nutrindo seu corpo com cuidado.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua alimentação está equilibrada e intencional. Isso é saúde de dentro para fora!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Peso",
+    "mensagens": [
+      { "indice": 1, "texto": "Cuidar do peso é cuidar da saúde. Você está no processo e isso já é muito!", "maior_que_79": false },
+      { "indice": 2, "texto": "Foque em hábitos sustentáveis hoje, não em resultados imediatos. Você está construindo!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está avançando na direção certa. Consistência é a chave — continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo seu progresso! Seus hábitos estão gerando resultados visíveis.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você alcançou um equilíbrio saudável com disciplina e determinação. Isso é incrível!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Condicionamento",
+    "mensagens": [
+      { "indice": 1, "texto": "Seu condicionamento melhora a cada sessão de treino. Você está no caminho certo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Desafie-se um pouquinho mais hoje. Seu corpo é mais capaz do que você imagina!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está ganhando força e resistência progressivamente. Continue evoluindo!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo seu condicionamento físico! Sua dedicação está claramente valendo a pena.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está em ótima forma física. Isso é resultado de treino consistente e compromisso!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Exames",
+    "mensagens": [
+      { "indice": 1, "texto": "Fazer exames preventivos é um ato de amor próprio. Você está cuidando da sua saúde!", "maior_que_79": false },
+      { "indice": 2, "texto": "Agende um exame pendente hoje. Prevenção é sempre melhor que remediação!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está acompanhando sua saúde com responsabilidade. Isso é muito importante!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns por manter seus exames em dia! Você cuida da sua saúde preventivamente.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está em dia com sua saúde e isso reflete seu cuidado e responsabilidade. Excelente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Sedentarismo",
+    "mensagens": [
+      { "indice": 1, "texto": "Cada movimento conta! Você já está reconhecendo a importância de se mover mais.", "maior_que_79": false },
+      { "indice": 2, "texto": "Levante e caminhe por 10 minutos hoje. Pequenas quebras no sedentarismo fazem diferença!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está reduzindo o sedentarismo com ações concretas. Continue nesse caminho!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você superou o sedentarismo e tornou o movimento parte da sua rotina.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está muito mais ativo do que antes. Isso transforma sua saúde e sua energia!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Exaustão",
+    "mensagens": [
+      { "indice": 1, "texto": "Reconhecer a exaustão é o primeiro passo para se recuperar. Cuide-se com gentileza!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, elimine uma compromisso desnecessário e proteja sua energia. Você precisa disso!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está se recuperando com cuidado. Continue respeitando seus limites!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela sua recuperação! Você aprendeu a se reabastecer antes de esvaziar.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está com energia renovada e isso mostra que você aprendeu a cuidar de si mesmo!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Doenças",
+    "mensagens": [
+      { "indice": 1, "texto": "Cuidar da saúde é prioridade. Você está levando isso a sério — continue!", "maior_que_79": false },
+      { "indice": 2, "texto": "Siga o acompanhamento médico com disciplina. Cada passo conta na sua recuperação!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está cuidando da sua saúde com responsabilidade e comprometimento. Isso importa!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo seu cuidado com a saúde! Você está gerenciando isso com muita responsabilidade.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está bem cuidado e bem acompanhado. Sua saúde está em boas mãos — as suas!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Tempo de Qualidade",
+    "mensagens": [
+      { "indice": 1, "texto": "Tempo de qualidade não precisa ser longo — precisa ser presente. Você já está percebendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Reserve 30 minutos hoje para estar completamente presente com alguém que ama.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está criando memórias significativas. Continue investindo nesses momentos!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo tempo de qualidade que você está construindo! Isso fortalece seus vínculos.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está presente de verdade nas relações que importam. Isso é um presente raro!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Educação",
+    "mensagens": [
+      { "indice": 1, "texto": "Aprender é uma das melhores formas de crescer. Você está investindo nisso — muito bem!", "maior_que_79": false },
+      { "indice": 2, "texto": "Que tal dedicar 15 minutos hoje a algo que quer aprender? O conhecimento é seu!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está expandindo seu repertório. Continue aprendendo e crescendo!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo seu comprometimento com a educação! Você está sempre evoluindo.", "maior_que_79": true },
+      { "indice": 5, "texto": "Seu investimento em educação está gerando retornos reais na sua vida. Incrível!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Rotina",
+    "mensagens": [
+      { "indice": 1, "texto": "Uma rotina consistente libera energia mental. Você está construindo a sua!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, estabeleça um horário fixo para uma atividade importante. Rotina se constrói assim!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está ganhando mais estabilidade com sua rotina. Continue nesse caminho!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela sua rotina bem estruturada! Ela é a espinha dorsal da sua produtividade.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você tem uma rotina sólida que sustenta seus objetivos. Isso é organização de vida real!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Finanças do Filho",
+    "mensagens": [
+      { "indice": 1, "texto": "Planejar as finanças do seu filho é um presente para o futuro dele. Você está fazendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Revise um gasto relacionado ao seu filho hoje e veja onde pode otimizar.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está garantindo a estabilidade financeira do seu filho. Continue com esse cuidado!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo planejamento financeiro que você faz pelo seu filho. Isso é responsabilidade!", "maior_que_79": true },
+      { "indice": 5, "texto": "As finanças do seu filho estão bem cuidadas graças ao seu comprometimento. Excelente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Comunicação",
+    "mensagens": [
+      { "indice": 1, "texto": "Uma comunicação mais clara começa com mais escuta ativa. Você já está trabalhando nisso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, antes de responder, ouça completamente. Isso transforma qualquer conversa!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está evoluindo na forma como se comunica. Continue praticando!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você se comunica com clareza, empatia e assertividade. Isso é poderoso.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua comunicação constrói pontes e resolve conflitos. Isso é uma habilidade valiosa!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Guarda Compartilhada",
+    "mensagens": [
+      { "indice": 1, "texto": "A guarda compartilhada exige colaboração. Você está fazendo o que é melhor para o seu filho!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, foque em um acerto concreto com o outro responsável. Pequenos acordos fazem diferença!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está conduzindo a guarda compartilhada com maturidade e foco no bem-estar do filho.", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela forma como você gerencia a guarda compartilhada! Isso beneficia todos.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você coloca o bem-estar do seu filho em primeiro lugar, sempre. Isso é amor incondicional!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Bem-estar da Mãe da Criança",
+    "mensagens": [
+      { "indice": 1, "texto": "Cuidar do bem-estar de quem cuida do seu filho é uma escolha inteligente e madura.", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, pratique uma comunicação gentil. Isso cria um ambiente melhor para todos!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está colaborando para um ambiente saudável para o seu filho. Continue assim!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela maturidade com que você trata essa relação. Seu filho agradece!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você mantém um ambiente respeitoso e colaborativo. Isso é coparentalidade de qualidade!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Agenda",
+    "mensagens": [
+      { "indice": 1, "texto": "Uma agenda bem organizada é a base da produtividade. Você está construindo a sua!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, revise sua agenda e priorize as três tarefas mais importantes. Foco total!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está ganhando controle sobre o seu tempo. Continue nesse ritmo!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Sua agenda reflete suas prioridades com clareza. Isso é gestão do tempo real.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você domina sua agenda e isso libera energia para o que realmente importa. Excelente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Compromissos",
+    "mensagens": [
+      { "indice": 1, "texto": "Honrar compromissos começa com assumir apenas o que é possível cumprir. Você está aprendendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Revise seus compromissos hoje e elimine o que não é essencial. Priorize com coragem!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está gerenciando melhor seus compromissos. Continue com essa consciência!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você cumpre seus compromissos com responsabilidade e isso gera confiança.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua palavra vale muito — você assume e entrega. Isso é integridade em ação!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Gastos",
+    "mensagens": [
+      { "indice": 1, "texto": "Monitorar os gastos é o primeiro passo para a saúde financeira. Você está fazendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, registre todos os seus gastos. Visibilidade é o começo do controle!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está mais consciente sobre para onde vai seu dinheiro. Continue assim!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo controle dos seus gastos! Você está construindo uma base financeira sólida.", "maior_que_79": true },
+      { "indice": 5, "texto": "Seus gastos estão alinhados às suas prioridades. Isso é inteligência financeira!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Saúde",
+    "mensagens": [
+      { "indice": 1, "texto": "Cuidar da saúde é um investimento em tudo mais que você valoriza. Você está nesse caminho!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, escolha um hábito saudável pequeno e pratique. Saúde se constrói no dia a dia!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está priorizando sua saúde de forma consistente. Continue com esse cuidado!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo cuidado com a sua saúde! Você está colhendo os benefícios disso.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua saúde está em excelente estado graças à sua dedicação. Isso é qualidade de vida!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Desenvolvimento",
+    "mensagens": [
+      { "indice": 1, "texto": "Cada dia é uma oportunidade de evoluir. Você está aproveitando essas oportunidades!", "maior_que_79": false },
+      { "indice": 2, "texto": "Identifique uma área de melhoria hoje e dê um passo concreto. Desenvolvimento é ação!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está crescendo de forma consistente. Continue investindo no seu desenvolvimento!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela sua evolução contínua! Você está se tornando uma versão melhor de si mesmo.", "maior_que_79": true },
+      { "indice": 5, "texto": "Seu desenvolvimento é notável e inspira quem está ao redor. Continue brilhando!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Educação do Filho",
+    "mensagens": [
+      { "indice": 1, "texto": "Investir na educação do seu filho é o melhor presente que você pode dar a ele!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, converse com seu filho sobre algo que ele aprendeu. Presença é educação também!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está acompanhando o desenvolvimento educacional do seu filho com carinho. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo investimento na educação do seu filho! Você está moldando o futuro dele.", "maior_que_79": true },
+      { "indice": 5, "texto": "Seu filho está se desenvolvendo muito bem graças ao seu suporte e presença. Incrível!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Conflitos Familiares",
+    "mensagens": [
+      { "indice": 1, "texto": "Lidar com conflitos familiares exige paciência e maturidade. Você está nesse processo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, escolha uma conversa difícil e aborde com empatia. Diálogo resolve conflitos!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está encontrando caminhos para resolver conflitos com mais equilíbrio. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela forma madura com que você está gerenciando os conflitos familiares!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está construindo uma família mais harmoniosa com diálogo e respeito. Isso é lindo!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Falta de Tempo",
+    "mensagens": [
+      { "indice": 1, "texto": "Todos temos 24 horas — o segredo está nas prioridades. Você está começando a entender isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, diga não a algo não essencial. Tempo é o seu recurso mais valioso!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está recuperando o controle sobre o seu tempo. Continue eliminando o supérfluo!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você está usando seu tempo de forma muito mais intencional. Isso é libertador!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você protege seu tempo como o precioso recurso que ele é. Isso muda tudo!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Operação",
+    "mensagens": [
+      { "indice": 1, "texto": "Uma operação eficiente começa com processos claros. Você está trabalhando nisso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, mapeie um gargalo operacional e pense em como resolvê-lo. Ação gera resultado!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está melhorando sua operação de forma consistente. Continue nesse ritmo!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Sua operação está mais eficiente e isso libera você para o estratégico.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua operação roda com eficiência e sua equipe sabe o que fazer. Isso é gestão madura!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Crescimento",
+    "mensagens": [
+      { "indice": 1, "texto": "Crescimento exige constância. Você está plantando as sementes certas todos os dias!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, execute uma ação que vai impactar seu crescimento amanhã. Comece agora!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está avançando com consistência. Continue focado e os resultados vão aparecer!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo crescimento que você está alcançando! Cada passo foi intencional.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você está crescendo com solidez e inteligência. Isso é resultado de trabalho real!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Equipe",
+    "mensagens": [
+      { "indice": 1, "texto": "Uma boa equipe começa com uma boa liderança. Você está desenvolvendo a sua!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, ofereça um feedback construtivo a alguém da sua equipe. Isso gera crescimento!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está fortalecendo sua equipe com comunicação e engajamento. Continue assim!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Sua equipe está bem alinhada e isso reflete sua liderança de qualidade.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você construiu uma equipe coesa e motivada. Isso é liderança de alto nível!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Finanças",
+    "mensagens": [
+      { "indice": 1, "texto": "Organizar as finanças é um ato de responsabilidade. Você está nesse processo!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, revise sua situação financeira e defina uma meta concreta. O controle é seu!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está ganhando mais clareza sobre suas finanças. Continue com essa disciplina!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo controle financeiro que você está exercendo! Isso gera tranquilidade.", "maior_que_79": true },
+      { "indice": 5, "texto": "Suas finanças estão organizadas e você tem visão clara do seu patrimônio. Excelente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Receita",
+    "mensagens": [
+      { "indice": 1, "texto": "Aumentar receita começa com entender o que gera mais valor. Você está nesse caminho!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, identifique uma oportunidade de geração de receita que ainda não explorou.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está criando bases para crescimento de receita consistente. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pelo crescimento da sua receita! Suas estratégias estão funcionando.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua receita está crescendo de forma sólida e sustentável. Isso é resultado de estratégia!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Lucro",
+    "mensagens": [
+      { "indice": 1, "texto": "Lucro saudável vem de eficiência e foco. Você está trabalhando nessa direção!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, identifique um custo que pode ser reduzido sem comprometer a qualidade.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está melhorando sua margem com decisões inteligentes. Continue nesse foco!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela sua lucratividade! Você está construindo um negócio financeiramente saudável.", "maior_que_79": true },
+      { "indice": 5, "texto": "Seu lucro reflete eficiência operacional e estratégia clara. Isso é gestão de excelência!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Funcionários",
+    "mensagens": [
+      { "indice": 1, "texto": "Uma equipe engajada começa com uma liderança que cuida. Você está desenvolvendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, reconheça o trabalho de alguém da sua equipe. Valorização gera engajamento!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está criando um ambiente onde as pessoas querem trabalhar. Continue assim!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Seus funcionários estão motivados e isso reflete sua liderança humana.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você cuida das pessoas que fazem seu negócio funcionar. Isso é liderança de verdade!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Projetos",
+    "mensagens": [
+      { "indice": 1, "texto": "Projetos avançam com ações consistentes. Você já está dando os passos certos!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, avance uma tarefa específica de um projeto parado. Movimento gera momentum!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está entregando projetos com mais foco e organização. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns pela gestão dos seus projetos! Você entrega com qualidade e no prazo.", "maior_que_79": true },
+      { "indice": 5, "texto": "Seus projetos avançam com eficiência e clareza. Isso é gestão de alto nível!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Problemas Críticos",
+    "mensagens": [
+      { "indice": 1, "texto": "Todo problema crítico tem solução. Você está enfrentando isso com coragem!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, defina a próxima ação concreta para resolver seu problema mais urgente.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está abordando os problemas críticos com foco e determinação. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns por resolver problemas críticos com tanto equilíbrio e eficácia!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você transforma crises em aprendizados e soluções. Isso é liderança resiliente!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Fluxo de Caixa",
+    "mensagens": [
+      { "indice": 1, "texto": "Monitorar o fluxo de caixa é fundamental. Você está prestando atenção nisso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, revise as entradas e saídas dos próximos 30 dias. Previsibilidade é poder!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está ganhando visibilidade sobre o seu fluxo de caixa. Continue com esse controle!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Seu fluxo de caixa está saudável e bem monitorado. Isso traz tranquilidade.", "maior_que_79": true },
+      { "indice": 5, "texto": "Você tem total clareza sobre seu fluxo financeiro. Isso é saúde empresarial real!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Sobrecarga de Trabalho",
+    "mensagens": [
+      { "indice": 1, "texto": "Reconhecer a sobrecarga é o começo. Você está tomando conta da sua capacidade!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, elimine ou delegue uma tarefa da sua lista. Você não precisa fazer tudo sozinho!", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está encontrando formas de trabalhar de forma mais sustentável. Continue!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns por estar gerenciando sua carga de trabalho com mais equilíbrio e inteligência!", "maior_que_79": true },
+      { "indice": 5, "texto": "Você trabalha com eficiência sem se sobrecarregar. Isso é maturidade profissional!", "maior_que_79": true }
+    ]
+  },
+  {
+    "folha": "Riscos do Negócio",
+    "mensagens": [
+      { "indice": 1, "texto": "Identificar riscos é metade do caminho para evitá-los. Você está fazendo isso!", "maior_que_79": false },
+      { "indice": 2, "texto": "Hoje, mapeie um risco específico do seu negócio e pense em uma ação preventiva.", "maior_que_79": false },
+      { "indice": 3, "texto": "Você está gerenciando os riscos com consciência e estratégia. Continue assim!", "maior_que_79": false },
+      { "indice": 4, "texto": "Parabéns! Você antecipa riscos e age preventivamente. Isso protege seu negócio.", "maior_que_79": true },
+      { "indice": 5, "texto": "Sua gestão de riscos é madura e proativa. Isso é diferencial competitivo real!", "maior_que_79": true }
+    ]
+  }
+]

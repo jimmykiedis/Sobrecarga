@@ -30,6 +30,20 @@ export const getNextLocalMidnightTimestamp = (date = new Date()) => {
   return nextMidnight.getTime();
 };
 
+export const getNextLocalFiveAmTimestamp = (date = new Date()) => {
+  const current = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(current.getTime())) {
+    return Date.now();
+  }
+
+  const trigger = new Date(current);
+  trigger.setHours(5, 0, 0, 0);
+  if (current.getTime() >= trigger.getTime()) {
+    trigger.setDate(trigger.getDate() + 1);
+  }
+  return trigger.getTime();
+};
+
 export const addDays = (dateLike, days) => {
   const date = new Date(dateLike);
   date.setDate(date.getDate() + days);

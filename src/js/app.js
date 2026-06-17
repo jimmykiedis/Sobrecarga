@@ -8,7 +8,6 @@ import {
   updateLeafHorizon,
   setLeafCustomName,
   setWeeklyReviewScore,
-  setWeeklyReviewNote,
   selectNextStep,
   setLeafSearchQuery,
   createLeafInNode,
@@ -39,11 +38,12 @@ import { statusLabels } from "./ui/moodPanel.js";
 import { renderLeafResults } from "./ui/adviceModal.js";
 import { getMoodFromAverageValue } from "./services/moodService.js";
 import { findLeaves } from "./services/adviceService.js";
+import { loadDashboardPhrases } from "./services/inspirationService.js";
 import { average, formatPercent } from "./utils/calculations.js";
 import {
   formatDateTime,
   getLocalDateStamp,
-  getNextLocalMidnightTimestamp,
+  getNextLocalFiveAmTimestamp,
   horizonIndexToValue,
   horizonLabel,
   horizonValueToIndex,
@@ -67,14 +67,14 @@ const state = {
   localState: createDefaultState(),
   drafts: {
     weeklyReviewScore: null,
-    weeklyReviewNote: null,
-    nextStepText: null,
   },
   panelStates: {
     weeklyReviewCollapsed: false,
     nextStepCollapsed: false,
   },
   nextStepReminderOpen: false,
+  dashboardPhrases: null,
+  dashboardPhrasesLoaded: false,
 };
 
 let dashboardEventsBound = false;
@@ -91,6 +91,19 @@ let nextStepReminderTimer = null;
 const expandedNodeKeys = new Set();
 
 const cloneState = (value) => JSON.parse(JSON.stringify(value));
+
+const ensureDashboardPhrasesLoaded = async () => {
+  if (state.dashboardPhrasesLoaded) return;
+  state.dashboardPhrasesLoaded = true;
+  try {
+    state.dashboardPhrases = await loadDashboardPhrases();
+  } catch {
+    state.dashboardPhrases = [];
+  }
+  if (state.user) {
+    renderDashboard();
+  }
+};
 
 const storageKey = (user) => `${STORAGE_PREFIX}${user.uid || user.email || "guest"}`;
 
@@ -208,6 +221,8 @@ const buildDashboardMarkup = () =>
       openLeafMenuId,
       showFirestoreSync: isFirestoreSyncVisible(),
       nextStepReminderOpen: state.nextStepReminderOpen,
+      dashboardPhrases: state.dashboardPhrases,
+      dashboardPhrasesLoaded: state.dashboardPhrasesLoaded,
     },
   });
 
@@ -228,13 +243,13 @@ const clearNextStepReminderTimer = () => {
   nextStepReminderTimer = null;
 };
 
-const recordNextStepReminderShown = (dueDateStamp) => {
+const recordNextStepReminderShown = (dateStamp) => {
   if (!state.localState?.nextStep) return;
   state.localState = {
     ...state.localState,
     nextStep: {
       ...state.localState.nextStep,
-      reminderShownForDateStamp: dueDateStamp,
+      reminderLastShownDateStamp: dateStamp,
     },
   };
   saveState();
@@ -243,12 +258,14 @@ const recordNextStepReminderShown = (dueDateStamp) => {
 const openNextStepReminder = () => {
   const dueDateStamp = state.localState?.nextStep?.dueDateStamp;
   if (!dueDateStamp) return;
-  if (state.localState.nextStep?.reminderShownForDateStamp === dueDateStamp) {
+  const todayStamp = getLocalDateStamp();
+  if (state.localState.nextStep?.reminderLastShownDateStamp === todayStamp) {
     return;
   }
 
-  recordNextStepReminderShown(dueDateStamp);
+  recordNextStepReminderShown(todayStamp);
   state.nextStepReminderOpen = true;
+  ensureDashboardPhrasesLoaded();
   renderDashboard();
 };
 
@@ -266,14 +283,28 @@ const scheduleNextStepReminderCheck = () => {
   if (!nextStep?.leafId || !nextStep.dueDateStamp) return;
 
   const todayStamp = getLocalDateStamp();
-  if (todayStamp >= nextStep.dueDateStamp) {
-    if (nextStep.reminderShownForDateStamp !== nextStep.dueDateStamp) {
-      openNextStepReminder();
-    }
+  if (todayStamp > nextStep.dueDateStamp) {
     return;
   }
 
-  const delay = Math.max(0, getNextLocalMidnightTimestamp() - Date.now() + 50);
+  const now = new Date();
+  const fiveAmToday = new Date(now);
+  fiveAmToday.setHours(5, 0, 0, 0);
+
+  if (now.getTime() < fiveAmToday.getTime()) {
+    const delay = Math.max(0, fiveAmToday.getTime() - Date.now() + 50);
+    nextStepReminderTimer = window.setTimeout(() => {
+      nextStepReminderTimer = null;
+      scheduleNextStepReminderCheck();
+    }, delay);
+    return;
+  }
+
+  if (nextStep.reminderLastShownDateStamp !== todayStamp) {
+    openNextStepReminder();
+  }
+
+  const delay = Math.max(0, getNextLocalFiveAmTimestamp(now) - Date.now() + 50);
   nextStepReminderTimer = window.setTimeout(() => {
     nextStepReminderTimer = null;
     scheduleNextStepReminderCheck();
@@ -425,7 +456,7 @@ const refreshSummaryBindings = () => {
 };
 
 const refreshWeeklyReviewPanel = () => {
-  const sections = app.querySelectorAll('[data-dashboard-section="weekly-review"], .modal--reminder');
+  const sections = app.querySelectorAll(".modal--reminder");
   if (!sections.length) return;
 
   const score =
@@ -461,16 +492,6 @@ const refreshWeeklyReviewPanel = () => {
       label.classList.toggle("is-active", labelScore === score);
     });
   });
-};
-
-const refreshNextStepPanel = () => {
-  const section = app.querySelector('[data-dashboard-section="next-step"]');
-  if (!section) return;
-
-  const textarea = section.querySelector('[data-field="next-step-text"]');
-  if (textarea && state.drafts.nextStepText !== null) {
-    textarea.value = state.drafts.nextStepText;
-  }
 };
 
 const refreshRadarChart = () => {
@@ -563,8 +584,6 @@ const applyWorkspaceSnapshot = (nextState, syncMessage) => {
   state.nextStepReminderOpen = false;
   state.drafts = {
     weeklyReviewScore: null,
-    weeklyReviewNote: null,
-    nextStepText: null,
   };
   state.panelStates = {
     weeklyReviewCollapsed: false,
@@ -579,45 +598,14 @@ const setWeeklyReviewScoreLocal = (score) => {
   refreshWeeklyReviewPanel();
 };
 
-const getWeeklyReviewNoteDraft = () =>
-  state.drafts.weeklyReviewNote !== null ? state.drafts.weeklyReviewNote : (state.localState.weeklyReview.note || "");
-
-const getNextStepTextDraft = () =>
-  state.drafts.nextStepText !== null ? state.drafts.nextStepText : (state.localState.nextStep.text || "");
-
-const commitWeeklyReviewNote = () => {
-  const note = getWeeklyReviewNoteDraft();
+const commitWeeklyReviewScore = () => {
   const score =
     state.drafts.weeklyReviewScore !== null
       ? Number(state.drafts.weeklyReviewScore)
       : Number(state.localState.weeklyReview?.moodValue ?? 0);
-  state.drafts.weeklyReviewNote = note;
   state.drafts.weeklyReviewScore = score;
-  setLocalStatePartial(
-    (current) =>
-      setWeeklyReviewNote(
-        setWeeklyReviewScore(current, score),
-        note
-      ),
-    ['[data-dashboard-section="weekly-review"]']
-  );
+  setLocalStatePartial((current) => setWeeklyReviewScore(current, score), [".modal--reminder"]);
   refreshWeeklyReviewPanel();
-};
-
-const commitNextStepText = () => {
-  const text = getNextStepTextDraft();
-  state.drafts.nextStepText = text;
-  setLocalStatePartial(
-    (current) => ({
-      ...current,
-      nextStep: {
-        ...current.nextStep,
-        text,
-      },
-    }),
-    ['[data-dashboard-section="next-step"]', '[data-summary="overview-next-step"]']
-  );
-  refreshNextStepPanel();
 };
 
 const setWeeklyReviewCollapsed = (collapsed) => {
@@ -652,6 +640,7 @@ const render = () => {
     return;
   }
   syncDerivedState();
+  ensureDashboardPhrasesLoaded();
   renderDashboard();
   saveState();
 };
@@ -953,25 +942,13 @@ async function handleDashboardClick(event) {
   }
 
   if (action === "commit-weekly-review") {
-    commitWeeklyReviewNote();
-    setWeeklyReviewCollapsed(true);
+    commitWeeklyReviewScore();
     closeNextStepReminder();
-    return;
-  }
-
-  if (action === "toggle-weekly-review-card") {
-    setWeeklyReviewCollapsed(false);
     return;
   }
 
   if (action === "open-modal") {
     setLocalState((current) => toggleModal(current, true));
-    return;
-  }
-
-  if (action === "commit-next-step") {
-    commitNextStepText();
-    setNextStepCollapsed(true);
     return;
   }
 
@@ -1025,6 +1002,7 @@ async function handleDashboardClick(event) {
     if (leaf) {
       state.nextStepReminderOpen = false;
       setLocalState((current) => selectNextStep(current, leaf));
+      setNextStepCollapsed(true);
     }
     return;
   }
@@ -1069,16 +1047,6 @@ function handleDashboardInput(event) {
   if (field.dataset.field === "weekly-review-score") {
     const value = Number(field.value);
     setWeeklyReviewScoreLocal(value);
-    return;
-  }
-
-  if (field.dataset.field === "weekly-review-note") {
-    state.drafts.weeklyReviewNote = field.value;
-    return;
-  }
-
-  if (field.dataset.field === "next-step-text") {
-    state.drafts.nextStepText = field.value;
     return;
   }
 }
@@ -1145,18 +1113,18 @@ const setupAuthListener = async () => {
         state.localState = loadSavedState(state.user);
         state.drafts = {
           weeklyReviewScore: null,
-          weeklyReviewNote: null,
-          nextStepText: null,
         };
         state.panelStates = {
           weeklyReviewCollapsed: false,
           nextStepCollapsed: false,
         };
-        state.loading = false;
-        state.dirty = false;
-        state.syncMessage = "Workspace atualizado com a árvore atual";
-        render();
-        return;
+      state.loading = false;
+      state.dirty = false;
+      state.syncMessage = "Workspace atualizado com a árvore atual";
+      state.dashboardPhrases = null;
+      state.dashboardPhrasesLoaded = false;
+      render();
+      return;
       }
 
       state.user = null;
@@ -1165,8 +1133,6 @@ const setupAuthListener = async () => {
       state.localState = createDefaultState();
       state.drafts = {
         weeklyReviewScore: null,
-        weeklyReviewNote: null,
-        nextStepText: null,
       };
       state.panelStates = {
         weeklyReviewCollapsed: false,
@@ -1183,6 +1149,8 @@ const setupAuthListener = async () => {
       dashboardOpenedAt = null;
       centeredOrganogramSnapshotId = null;
       lastFirestoreAutoSyncSignature = "";
+      state.dashboardPhrases = null;
+      state.dashboardPhrasesLoaded = false;
       clearFirestoreTimers();
       clearNextStepReminderTimer();
       unbindDashboardEvents();

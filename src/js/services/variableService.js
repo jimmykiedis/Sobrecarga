@@ -40,7 +40,11 @@ const buildNextStepSelection = (leaf, selectedAt = new Date().toISOString(), ove
     selectedAt: safeSelectedAt,
     dueDateStamp,
     horizonDays: effectiveHorizonDays,
-    reminderShownForDateStamp: overrides.reminderShownForDateStamp || "",
+    reminderLastShownDateStamp: isDateStamp(overrides.reminderLastShownDateStamp)
+      ? overrides.reminderLastShownDateStamp
+      : isDateStamp(overrides.reminderShownForDateStamp)
+        ? overrides.reminderShownForDateStamp
+        : "",
   };
 };
 
@@ -543,6 +547,7 @@ export const normalizeState = (state) => ({
     const built = buildNextStepSelection(sourceLeaf, state.nextStep?.selectedAt || now.toISOString(), {
       horizonDays: state.nextStep?.horizonDays,
       dueDateStamp: state.nextStep?.dueDateStamp,
+      reminderLastShownDateStamp: state.nextStep?.reminderLastShownDateStamp,
       reminderShownForDateStamp: state.nextStep?.reminderShownForDateStamp,
     });
     return {
@@ -552,7 +557,12 @@ export const normalizeState = (state) => ({
       selectedAt: built.selectedAt,
       dueDateStamp: built.dueDateStamp,
       horizonDays: built.horizonDays,
-      reminderShownForDateStamp: String(state.nextStep?.reminderShownForDateStamp || built.reminderShownForDateStamp || ""),
+      reminderLastShownDateStamp: String(
+        state.nextStep?.reminderLastShownDateStamp ||
+          state.nextStep?.reminderShownForDateStamp ||
+          built.reminderLastShownDateStamp ||
+          ""
+      ),
     };
   })(),
 });

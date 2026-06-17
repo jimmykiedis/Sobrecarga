@@ -909,6 +909,17 @@ h3 {
   min-width: 0;
 }
 
+[data-dashboard-section="weekly-review"] {
+  display: none !important;
+}
+
+[data-dashboard-section="next-step"] [data-field="next-step-text"],
+[data-dashboard-section="next-step"] [data-action="commit-next-step"],
+.modal--reminder [data-field="weekly-review-note"],
+.modal--reminder .panel-note {
+  display: none !important;
+}
+
 .next-step-panel__context {
   display: grid;
   gap: 6px;
@@ -920,6 +931,19 @@ h3 {
 
 .next-step-panel__context strong {
   font-size: 1.05rem;
+}
+
+.next-step-panel__motivation {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(16, 185, 129, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.next-step-panel__motivation p {
+  margin: 0;
 }
 
 .next-step-panel > * {

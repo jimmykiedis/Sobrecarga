@@ -3,6 +3,7 @@ import { renderStatusBar, statusLabels } from "./moodPanel.js";
 import { renderLeafModal } from "./adviceModal.js";
 import { renderOrganogramSvg } from "./organogram.js";
 import { getActiveLeaves, getLeafDisplayName } from "../services/variableService.js";
+import { pickDashboardPhrase } from "../services/inspirationService.js";
 import { average, progressBetween, formatPercent } from "../utils/calculations.js";
 import { formatDate, formatDateTime, horizonLabel, horizonOptions, horizonValueToIndex } from "../utils/dates.js";
 import { findLeaves } from "../services/adviceService.js";
@@ -49,7 +50,8 @@ const renderNextStepReminderModal = ({
   currentNextLeaf,
   nextStep,
   weeklyReviewScore,
-  weeklyReviewNote,
+  weeklyReviewNote = "",
+  motivationalMessage,
 }) => `
   <div class="modal modal--reminder is-open" role="dialog" aria-modal="true" aria-labelledby="next-step-reminder-title">
     <div class="modal__backdrop" data-action="close-next-step-reminder"></div>
@@ -63,6 +65,10 @@ const renderNextStepReminderModal = ({
       </header>
       <div class="review-panel">
         ${renderNextStepLeafContext(currentNextLeaf, nextStep)}
+        <div class="next-step-panel__motivation">
+          <p class="eyebrow">Mensagem do dia</p>
+          <p>${motivationalMessage || "Carregando mensagem personalizada..."}</p>
+        </div>
         <p class="review-panel__score">
           Resultado atual:
           <strong data-weekly-review-score-current>${weeklyReviewScore > 0 ? "+" : ""}${weeklyReviewScore}</strong>
@@ -134,6 +140,14 @@ export const createDashboardMarkup = (state) => {
         nextStep,
       }
     : null;
+  const motivationalMessage = currentNextLeafContext
+    ? pickDashboardPhrase({
+        phrases: state.ui?.dashboardPhrases,
+        leafName: getLeafDisplayName(currentNextLeafContext),
+        currentValue: currentNextLeafContext.currentValue,
+        dateStamp: nextStep.dueDateStamp || "",
+      })
+    : "";
 
   const changedLeaves = activeLeaves
     .filter((leaf) => leaf.currentValue !== leaf.startValue)
@@ -761,7 +775,7 @@ export const createDashboardMarkup = (state) => {
       currentNextLeaf: currentNextLeafContext,
       nextStep,
       weeklyReviewScore,
-      weeklyReviewNote,
+      motivationalMessage,
     }) : ""}
   `;
 };
