@@ -5,7 +5,14 @@ import { renderOrganogramSvg } from "./organogram.js";
 import { getActiveLeaves, getLeafDisplayName } from "../services/variableService.js";
 import { pickDashboardPhrase } from "../services/inspirationService.js";
 import { average, progressBetween, formatPercent } from "../utils/calculations.js";
-import { formatDate, formatDateTime, horizonLabel, horizonOptions, horizonValueToIndex } from "../utils/dates.js";
+import {
+  formatDate,
+  formatDateTime,
+  getLocalDateStamp,
+  horizonLabel,
+  horizonOptions,
+  horizonValueToIndex,
+} from "../utils/dates.js";
 import { findLeaves } from "../services/adviceService.js";
 import { buildReviewSummary } from "../services/reviewService.js";
 
@@ -150,7 +157,7 @@ export const createDashboardMarkup = (state) => {
         phrases: state.ui?.dashboardPhrases,
         leafName: getLeafDisplayName(currentNextLeafContext),
         currentValue: currentNextLeafContext.currentValue,
-        dateStamp: nextStep.dueDateStamp || "",
+        dateStamp: getLocalDateStamp(),
       })
     : "";
 

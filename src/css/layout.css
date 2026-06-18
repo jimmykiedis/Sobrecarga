@@ -14,6 +14,9 @@ body {
     linear-gradient(180deg, #050816 0%, #09111f 48%, #050816 100%);
   overscroll-behavior-x: none;
   overscroll-behavior-y: contain;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 body::before {
@@ -38,6 +41,15 @@ select,
 textarea,
 a {
   touch-action: manipulation;
+}
+
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
 }
 
 .shell {

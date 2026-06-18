@@ -54,6 +54,7 @@ import { buildReviewSummary } from "./services/reviewService.js";
 const STORAGE_PREFIX = "sobrecarga-state:";
 const app = document.getElementById("app");
 const SCROLL_TOP_REVEAL_OFFSET = 160;
+const BD_COOLDOWN_SYNC = 2400
 
 const state = {
   user: null,
@@ -89,6 +90,7 @@ let firestoreAutoSyncTimer = null;
 let firestoreWorkspaceListener = null;
 let workspaceRecoveryEventsBound = false;
 let lastFirestoreAutoSyncSignature = "";
+let pendingFirestoreAutoSyncSignature = "";
 let openLeafMenuId = null;
 let nextStepReminderTimer = null;
 const expandedNodeKeys = new Set();
@@ -405,6 +407,7 @@ const clearFirestoreTimers = () => {
   clearTimeout(firestoreAutoSyncTimer);
   firestoreButtonRevealTimer = null;
   firestoreAutoSyncTimer = null;
+  pendingFirestoreAutoSyncSignature = "";
 };
 
 const clearNextStepReminderTimer = () => {
@@ -499,16 +502,40 @@ const scheduleFirestoreAutoSync = () => {
   if (!state.user || state.loading || state.saving || !state.dirty) return;
   const signature = state.localState?.updatedAt || "";
   if (!signature || signature === lastFirestoreAutoSyncSignature) return;
+  if (firestoreAutoSyncTimer && pendingFirestoreAutoSyncSignature === signature) return;
 
   clearTimeout(firestoreAutoSyncTimer);
+  pendingFirestoreAutoSyncSignature = signature;
   firestoreAutoSyncTimer = window.setTimeout(async () => {
     firestoreAutoSyncTimer = null;
-    if (!state.user || state.loading || state.saving || !state.dirty) return;
-    if ((state.localState?.updatedAt || "") !== signature) return;
+    if (!state.user || state.loading || !state.dirty) {
+      if (pendingFirestoreAutoSyncSignature === signature) {
+        pendingFirestoreAutoSyncSignature = "";
+      }
+      return;
+    }
 
-    const saved = await persistWorkspaceToFirestore("Sincronizado automaticamente");
-    lastFirestoreAutoSyncSignature = saved ? signature : "";
-  }, 600);
+    if ((state.localState?.updatedAt || "") !== signature) {
+      if (pendingFirestoreAutoSyncSignature === signature) {
+        pendingFirestoreAutoSyncSignature = "";
+      }
+      scheduleFirestoreAutoSync();
+      return;
+    }
+
+    const saved = await persistWorkspaceToFirestore("Sincronizado automaticamente", { silent: true });
+    if (saved && (state.localState?.updatedAt || "") === signature) {
+      lastFirestoreAutoSyncSignature = signature;
+    }
+
+    if (pendingFirestoreAutoSyncSignature === signature) {
+      pendingFirestoreAutoSyncSignature = "";
+    }
+
+    if (state.dirty) {
+      scheduleFirestoreAutoSync();
+    }
+  }, BD_COOLDOWN_SYNC);
 };
 
 const runDashboardEffects = () => {
@@ -852,25 +879,48 @@ const handleSignOut = async () => {
   await signOut();
 };
 
-const persistWorkspaceToFirestore = async (successMessage = "Salvo no Firestore") => {
+const persistWorkspaceToFirestore = async (successMessage = "Salvo no Firestore", options = {}) => {
+  const silent = Boolean(options.silent);
   if (!state.user || state.saving) return;
+
+  const saveSignature = state.localState?.updatedAt || "";
+  const shouldRender = !silent;
 
   state.saving = true;
   state.syncMessage = "Enviando para o Firestore...";
-  renderDashboard();
+  if (shouldRender) {
+    renderDashboard();
+  } else {
+    refreshSummaryBindings();
+  }
 
   try {
     await saveUserWorkspace(state.user.uid, state.localState);
-    state.lastSavedAt = state.localState.updatedAt || new Date().toISOString();
-    state.dirty = false;
-    state.syncMessage = successMessage;
+    state.lastSavedAt = saveSignature || new Date().toISOString();
+    if ((state.localState?.updatedAt || "") === saveSignature) {
+      state.dirty = false;
+    }
+    state.syncMessage = silent ? "Sincronizado em segundo plano" : successMessage;
+    if (silent) {
+      refreshSummaryBindings();
+    }
     return true;
   } catch (error) {
     state.syncMessage = error?.message || "Falha ao salvar no Firestore";
+    if (silent) {
+      refreshSummaryBindings();
+    }
     return false;
   } finally {
     state.saving = false;
-    renderDashboard();
+    if (shouldRender) {
+      renderDashboard();
+    } else {
+      refreshSummaryBindings();
+      if (state.dirty) {
+        scheduleFirestoreAutoSync();
+      }
+    }
   }
 };
 

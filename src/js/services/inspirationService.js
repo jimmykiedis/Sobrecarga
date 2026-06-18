@@ -9,6 +9,18 @@ const normalizeText = (value) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
+const stableHash = (value) => {
+  let hash = 2166136261;
+  const text = String(value || "");
+
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+};
+
 export const loadDashboardPhrases = async () => {
   if (!phrasesPromise) {
     phrasesPromise = fetch(PHRASES_URL)
@@ -36,6 +48,7 @@ export const pickDashboardPhrase = ({ phrases, leafName, currentValue, dateStamp
   const pool = eligibleMessages.length ? eligibleMessages : leafEntry.mensagens;
   if (!pool.length) return "";
 
-  const selectedIndex = Math.floor(Math.random() * pool.length);
+  const seed = `${normalizedLeafName}|${String(currentValue || "")}|${normalizeText(dateStamp)}`;
+  const selectedIndex = stableHash(seed) % pool.length;
   return pool[selectedIndex]?.texto || "";
 };
