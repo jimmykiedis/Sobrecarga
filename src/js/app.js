@@ -615,20 +615,25 @@ const refreshSummaryBindings = () => {
   };
 
   const moodEmoji = summary.mood.emoji;
+  const weakestCardinal = state.localState.cardinals.reduce((lowest, cardinal) => {
+    if (!lowest) return cardinal;
+    return cardinal.value < lowest.value ? cardinal : lowest;
+  }, null);
   setText('[data-summary="mood-emoji"]', moodEmoji);
   setText('[data-summary="mood-label"]', summary.mood.label);
   setText('[data-summary="sync-message"]', state.syncMessage || "Salvo localmente");
   setText('[data-summary="session-mood"]', summary.mood.label);
-  setText('[data-summary="session-state"]', summary.mood.label);
   setText('[data-summary="session-average-cardinal"]', formatPercent(summary.averageCardinal));
   setText('[data-summary="session-changed-leaves"]', String(summary.changedLeaves));
-  setText('[data-summary="session-next-step"]', currentNextLeaf?.name || "Definir");
+  setText(
+    '[data-summary="session-focus-cardinal"]',
+    weakestCardinal ? `${weakestCardinal.name} (${formatPercent(weakestCardinal.value)})` : "Sem cardinais"
+  );
   setText('[data-summary="session-updated-at"]', formatDateTime(state.localState.updatedAt));
   setText(
     '[data-summary="session-last-saved-at"]',
     state.lastSavedAt ? formatDateTime(state.lastSavedAt) : "Ainda não enviado"
   );
-  setText('[data-summary="session-recent-changes"]', String(summary.changedLeaves));
   setText('[data-summary="hero-average-cardinal"]', formatPercent(summary.averageCardinal));
   setText('[data-summary="hero-changed-leaves"]', String(summary.changedLeaves));
   setText('[data-summary="hero-updated-at"]', formatDateTime(state.localState.updatedAt));
@@ -1437,4 +1442,3 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
-

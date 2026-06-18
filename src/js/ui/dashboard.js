@@ -146,6 +146,10 @@ export const createDashboardMarkup = (state) => {
         horizonLabel: horizonLabel(currentNextLeafRaw.horizonDays),
       }
     : null;
+  const weakestCardinal = state.cardinals.reduce((lowest, cardinal) => {
+    if (!lowest) return cardinal;
+    return cardinal.value < lowest.value ? cardinal : lowest;
+  }, null);
   const currentNextLeafContext = currentNextLeaf
     ? {
         ...currentNextLeaf,
@@ -276,21 +280,17 @@ export const createDashboardMarkup = (state) => {
             <div class="session-card__intro">
               <div class="hero__emoji">${moodEmoji}</div>
               <div>
-                <p class="eyebrow">Sessão atual</p>
+                <p class="eyebrow">Leitura rápida</p>
                 <h2>O que importa agora, sem repetir informação demais.</h2>
                 <p class="hero__copy">
-                  O resumo principal concentra o estado emocional, a média das cardinais e o próximo passo.
-                  Os dados menos prioritários ficam no bloco secundário, com menos peso visual.
+                  O resumo principal concentra apenas os sinais úteis para decisão rápida: estado emocional,
+                  média das cardinais e volume de mudanças recentes.
                 </p>
               </div>
             </div>
             <div class="hero__stats session-card__stats">
               <div class="stat">
-                <span class="stat__label">Estado</span>
-                <strong data-summary="session-state">${summary.mood.label}</strong>
-              </div>
-              <div class="stat">
-                <span class="stat__label">Cardinais</span>
+                <span class="stat__label">Média das cardinais</span>
                 <strong data-summary="session-average-cardinal">${formatPercent(avgCardinal)}</strong>
               </div>
               <div class="stat">
@@ -298,35 +298,20 @@ export const createDashboardMarkup = (state) => {
                 <strong data-summary="session-changed-leaves">${changedLeaves.length}</strong>
               </div>
               <div class="stat">
-                <span class="stat__label">Próximo passo</span>
-                <strong data-summary="session-next-step">${currentNextLeaf?.name || "Definir"}</strong>
+                <span class="stat__label">Cardinal em foco</span>
+                <strong data-summary="session-focus-cardinal">${weakestCardinal ? `${weakestCardinal.name} (${formatPercent(weakestCardinal.value)})` : "Sem cardinais"}</strong>
               </div>
             </div>
-            <div class="session-card__details">
-              <div class="session-card__detail-block">
-                <p class="overview-panel__title">Resumo rápido</p>
-                <ul class="summary-list session-card__summary">
-                  <li><span>Estado emocional</span><strong data-summary="overview-mood">${summary.mood.label}</strong></li>
-                  <li><span>Média das cardinais</span><strong data-summary="overview-average-cardinal">${summary.averageCardinal.toFixed(1)}</strong></li>
-                  <li><span>Progresso médio das folhas alteradas</span><strong data-summary="overview-progress-average">${summary.progressAverage.toFixed(1)}%</strong></li>
-                  <li><span>Próximo passo</span><strong data-summary="overview-next-step">${currentNextLeaf?.name || "Definir"}</strong></li>
-                </ul>
-              </div>
-              <div class="session-card__detail-block session-card__detail-block--subtle">
-                <p class="overview-panel__title">Contexto secundário</p>
-                <div class="session-card__meta">
-                  <div class="session-card__meta-item">
-                    <span>Atualizado em</span>
-                    <strong data-summary="session-updated-at">${formatDateTime(state.updatedAt)}</strong>
-                  </div>
-                  <div class="session-card__meta-item">
-                    <span>Sincronização</span>
-                    <strong data-summary="session-last-saved-at">${state.ui?.lastSavedAt ? formatDateTime(state.ui.lastSavedAt) : "Ainda não enviado"}</strong>
-                  </div>
-                  <div class="session-card__meta-item">
-                    <span>Alterações recentes</span>
-                    <strong data-summary="session-recent-changes">${changedLeaves.length}</strong>
-                  </div>
+            <div class="session-card__secondary">
+              <p class="session-card__secondary-label">Contexto secundário</p>
+              <div class="session-card__meta session-card__meta--compact">
+                <div class="session-card__meta-item">
+                  <span>Atualizado em</span>
+                  <strong data-summary="session-updated-at">${formatDateTime(state.updatedAt)}</strong>
+                </div>
+                <div class="session-card__meta-item">
+                  <span>Sincronização</span>
+                  <strong data-summary="session-last-saved-at">${state.ui?.lastSavedAt ? formatDateTime(state.ui.lastSavedAt) : "Ainda não enviado"}</strong>
                 </div>
               </div>
             </div>
