@@ -29,6 +29,58 @@ const horizonToneClass = (value) => {
   return `horizon-tone horizon-tone--${index}`;
 };
 
+const leafHelpExamples = [
+  { match: /sono/i, text: "horas dormidas, regularidade do horário de dormir e sensação ao acordar" },
+  { match: /energia/i, text: "disposição ao longo do dia, fadiga e capacidade de manter o ritmo" },
+  { match: /exerc/i, text: "frequência de treino, constância e recuperação física" },
+  { match: /aliment/i, text: "qualidade das refeições, constância e relação com a comida" },
+  { match: /peso/i, text: "tendência corporal e controle do peso no tempo" },
+  { match: /condicion/i, text: "fôlego, resistência e capacidade física geral" },
+  { match: /exame/i, text: "exames, check-ups e acompanhamento de saúde" },
+  { match: /humor/i, text: "estabilidade emocional do dia e variações de humor" },
+  { match: /estresse/i, text: "pressão percebida, tensão e sobrecarga" },
+  { match: /ansiedad/i, text: "preocupação, agitação e nível de ansiedade percebido" },
+  { match: /autoconhecimento/i, text: "clareza sobre si, padrões pessoais e consciência emocional" },
+  { match: /terapia/i, text: "constância do processo terapêutico e efeito prático dele" },
+  { match: /equil/i, text: "capacidade de regular emoções e manter estabilidade interna" },
+  { match: /sobrecarga/i, text: "volume de demandas mentais e sensação de excesso" },
+  { match: /burnout/i, text: "risco de exaustão por excesso de pressão e trabalho" },
+  { match: /valores?/i, text: "clareza do que importa e coerência nas escolhas" },
+  { match: /princ/i, text: "coerência entre convicção e comportamento" },
+  { match: /prop[oó]sito/i, text: "sentido, direção e motivo para agir" },
+  { match: /legado/i, text: "o que você quer deixar para o futuro e para os outros" },
+  { match: /solid[aã]o/i, text: "nível de isolamento e necessidade de conexão" },
+  { match: /futuro/i, text: "clareza de direção e confiança no que vem pela frente" },
+  { match: /rede de apoio/i, text: "pessoas que sustentam, acolhem e ajudam de verdade" },
+  { match: /socializa/i, text: "contato, convivência e abertura para se relacionar" },
+  { match: /tempo de qualidade/i, text: "presença real, atenção e vínculo com quem importa" },
+  { match: /educa/i, text: "aprendizado, formação e apoio ao desenvolvimento" },
+  { match: /rotina/i, text: "regularidade, previsibilidade e organização do dia a dia" },
+  { match: /finan/i, text: "organização do dinheiro, segurança e pressão financeira" },
+  { match: /comunica/i, text: "clareza, alinhamento e qualidade da conversa" },
+  { match: /gastos/i, text: "controle de saída de dinheiro e previsibilidade financeira" },
+  { match: /sa[uú]de/i, text: "cuidado prático com bem-estar, prevenção e sinais do corpo" },
+  { match: /agenda/i, text: "organização de horários e cumprimento do combinado" },
+  { match: /compromiss/i, text: "cumprimento de responsabilidades e acordos" },
+  { match: /opera/i, text: "execução do dia a dia e fluidez da operação" },
+  { match: /crescimento/i, text: "expansão, avanço e geração de escala" },
+  { match: /equipe/i, text: "alinhamento, colaboração e funcionamento do time" },
+  { match: /receita/i, text: "entrada de dinheiro e previsibilidade comercial" },
+  { match: /lucro/i, text: "resultado final depois das despesas" },
+  { match: /funcion[aá]rios/i, text: "saúde do time, quantidade e qualidade do quadro" },
+  { match: /projetos/i, text: "andamento das iniciativas em curso" },
+  { match: /problemas cr[ií]ticos/i, text: "pendências urgentes que exigem ação imediata" },
+  { match: /fluxo de caixa/i, text: "entrada e saída de dinheiro no curto prazo" },
+  { match: /sobrecarga de trabalho/i, text: "acúmulo de tarefas e pressão operacional" },
+  { match: /riscos do neg[oó]cio/i, text: "exposição a problemas que podem afetar a empresa" },
+];
+
+const getLeafHelpExample = (leafName = "") => {
+  const normalized = String(leafName || "").trim();
+  const match = leafHelpExamples.find((item) => item.match.test(normalized));
+  return match?.text || "o comportamento, resultado ou sensação concreta que a palavra sugere no seu dia a dia";
+};
+
 const renderNextStepLeafContext = (leaf, nextStep) => {
   if (!leaf) {
     return `
@@ -100,6 +152,111 @@ const renderNextStepReminderModal = ({
     </div>
   </div>
 `;
+
+export const renderDashboardHelpModal = () => `
+  <div class="modal modal--dashboard-help is-open" role="dialog" aria-modal="true" aria-labelledby="dashboard-help-title">
+    <div class="modal__backdrop" data-action="close-dashboard-help"></div>
+    <div class="modal__panel modal__panel--dashboard-help">
+      <header class="modal__header">
+        <div>
+          <p class="eyebrow">Ajuda rápida</p>
+          <h3 id="dashboard-help-title">Como ler e ajustar os cards</h3>
+        </div>
+        <button type="button" class="icon-button" data-action="close-dashboard-help" aria-label="Fechar ajuda">x</button>
+      </header>
+      <div class="dashboard-help">
+        <section class="dashboard-help__card">
+          <h4>Quando usar + e -</h4>
+          <p>
+            Nos cards cardinais, aumente o valor quando a área como um todo avançou de forma real: você ganhou consistência, tirou peso daquele setor ou ficou mais perto do que quer viver.
+          </p>
+          <p>
+            Nas folhas, aumente quando o comportamento ou resultado específico melhorou. Diminua quando houve retrocesso, abandono do hábito, piora perceptível ou perda de alinhamento com o objetivo.
+          </p>
+        </section>
+        <section class="dashboard-help__card">
+          <h4>Como interpretar o número</h4>
+          <p>
+            O valor não é nota moral. Ele mostra o estado atual daquela área: quanto maior, mais favorável e estável; quanto menor, mais atenção e cuidado ela pede.
+          </p>
+          <p>
+            Use os ajustes para refletir a realidade recente, não a intenção. Se algo mudou nos últimos dias, o card deve mudar junto.
+          </p>
+        </section>
+        <section class="dashboard-help__card dashboard-help__card--full">
+          <h4>O que cada nível representa</h4>
+          <ul class="dashboard-help__list">
+            <li><strong>Raiz</strong>: a vida como um todo, no organograma.</li>
+            <li><strong>Troncos / cardinais</strong>: as grandes áreas da vida, como identidade, saúde, família e trabalho.</li>
+            <li><strong>Nós / galhos</strong>: subáreas que organizam melhor cada cardinal.</li>
+            <li><strong>Folhas</strong>: os cards que você incrementa ou decrementa com + e -, no dashboard.</li>
+          </ul>
+          <ul class="dashboard-help__list">
+            <li><strong>Identidade</strong>: valores, direção, propósito e o tipo de pessoa que você quer ser.</li>
+            <li><strong>Saúde mental</strong>: humor, estresse, equilíbrio emocional e clareza interna.</li>
+            <li><strong>Saúde física</strong>: sono, energia, movimento, condicionamento e sinais do corpo.</li>
+            <li><strong>Família</strong>: vínculos, convivência, cuidado, filhos e organização doméstica.</li>
+            <li><strong>Profissional</strong>: operação, crescimento, equipe, dinheiro e pressão do trabalho.</li>
+          </ul>
+          <p class="panel-note">
+            Neste contexto, “folhas” não são o organograma em si. São os cards de acompanhamento que você ajusta manualmente.
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+`;
+
+const renderLeafHelpModal = ({ leaf, cardinalName = "", nodeName = "" }) => {
+  if (!leaf) return "";
+
+  const leafName = getLeafDisplayName(leaf) || leaf.name || "Folha";
+  const leafExample = getLeafHelpExample(leafName);
+
+  return `
+    <div class="modal modal--dashboard-help is-open" role="dialog" aria-modal="true" aria-labelledby="dashboard-help-title">
+      <div class="modal__backdrop" data-action="close-leaf-help"></div>
+      <div class="modal__panel modal__panel--dashboard-help">
+        <header class="modal__header">
+          <div>
+            <p class="eyebrow">Ajuda rápida</p>
+            <h3 id="dashboard-help-title">${leafName}</h3>
+          </div>
+          <button type="button" class="icon-button" data-action="close-leaf-help" aria-label="Fechar ajuda">x</button>
+        </header>
+        <div class="dashboard-help">
+          <section class="dashboard-help__card">
+            <h4>O que esta folha representa</h4>
+            <p>
+              Esta folha é a leitura prática de <strong>${leafName}</strong> dentro de <strong>${nodeName || "Sem nó"}</strong> e da cardinal <strong>${cardinalName || "Sem cardinal"}</strong>.
+            </p>
+            <p>
+              Pense nela como um termômetro do aspecto concreto que a palavra sugere no seu dia a dia, não como opinião ou julgamento.
+            </p>
+          </section>
+          <section class="dashboard-help__card">
+            <h4>Quando subir ou descer</h4>
+            <p>
+              <strong>Suba com +</strong> quando houver avanço real, mais constância, menos atrito ou mais presença do que a folha representa.
+            </p>
+            <p>
+              <strong>Desça com -</strong> quando houver retrocesso, pausa, piora perceptível, excesso ou perda de controle.
+            </p>
+          </section>
+          <section class="dashboard-help__card dashboard-help__card--full">
+            <h4>Como ler esta palavra</h4>
+            <p>
+              Se o nome for amplo, leia a folha como a versão concreta da palavra. Exemplo útil para esta folha: <strong>${leafExample}</strong>.
+            </p>
+            <p class="panel-note">
+              O número deve acompanhar a realidade recente. Se a prática mudou, o valor também deve mudar.
+            </p>
+          </section>
+        </div>
+      </div>
+    </div>
+  `;
+};
 
 export const renderMoodCheckModal = ({
   moodEmoji,
@@ -234,6 +391,10 @@ export const createDashboardMarkup = (state) => {
         ...currentNextLeaf,
         nextStep,
       }
+    : null;
+  const dashboardHelpLeafId = state.localState?.dashboardHelpLeafId || "";
+  const dashboardHelpLeaf = dashboardHelpLeafId
+    ? activeLeaves.find((item) => item.id === dashboardHelpLeafId) || null
     : null;
   const motivationalMessage = currentNextLeafContext
     ? pickDashboardPhrase({
@@ -558,6 +719,16 @@ export const createDashboardMarkup = (state) => {
                                         ✎
                                       </button>
                                       <strong>${leaf.name}</strong>
+                                      <button
+                                        type="button"
+                                        class="icon-button icon-button--small icon-button--help leaf-item__help"
+                                        data-action="open-leaf-help"
+                                        data-leaf-id="${leaf.id}"
+                                        aria-label="Abrir ajuda sobre ${getLeafDisplayName(leaf)}"
+                                        title="Ajuda"
+                                      >
+                                        i
+                                      </button>
                                     </div>
                                     <button
                                       type="button"
@@ -821,6 +992,11 @@ export const createDashboardMarkup = (state) => {
       </button>
     </div>
 
+    ${state.localState?.dashboardHelpOpen ? renderLeafHelpModal({
+      leaf: dashboardHelpLeaf,
+      cardinalName: state.cardinals.find((item) => item.id === dashboardHelpLeaf?.cardinalId)?.name || "",
+      nodeName: dashboardHelpLeaf?.nodeName || "",
+    }) : ""}
     ${state.modalOpen ? renderLeafModal({ leaves: filteredLeaves, query: state.leafSearchQuery, selectedLeafId: state.nextStep.leafId }) : ""}
     ${state.ui?.nextStepReminderOpen ? renderNextStepReminderModal({
       currentNextLeaf: currentNextLeafContext,

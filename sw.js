@@ -1,4 +1,4 @@
-const CACHE_NAME = "sobrecarga-shell-v5";
+const CACHE_NAME = "sobrecarga-shell-v6";
 const ASSETS = [
   "./",
   "./index.html",

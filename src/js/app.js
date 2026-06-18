@@ -14,6 +14,7 @@ import {
   toggleLeafHidden,
   deleteLeaf,
   toggleShowHiddenLeaves,
+  toggleDashboardHelp,
   getActiveLeaves,
   getLeafDisplayName,
   toggleModal,
@@ -96,6 +97,8 @@ let lastFirestoreAutoSyncSignature = "";
 let pendingFirestoreAutoSyncSignature = "";
 let openLeafMenuId = null;
 let nextStepReminderTimer = null;
+let authBootstrapPromise = null;
+let authBootstrapUid = "";
 const expandedNodeKeys = new Set();
 const archiveNodeKeys = new Set();
 const MOOD_CHECK_LAYER_ID = "mood-check-layer";
@@ -362,6 +365,139 @@ const renderDashboard = () => {
     }
     syncScrollTopButtonVisibility();
   });
+};
+
+const formatLoginError = (error) => {
+  const code = String(error?.code || "").toLowerCase();
+  if (code.includes("invalid-email")) {
+    return "O e-mail parece inválido. Confira se ele foi digitado corretamente.";
+  }
+  if (code.includes("user-not-found")) {
+    return "Não encontramos uma conta com esse e-mail.";
+  }
+  if (code.includes("wrong-password") || code.includes("invalid-credential") || code.includes("invalid-login-credentials")) {
+    return "A senha está incorreta ou as credenciais não conferem. Tente novamente.";
+  }
+  if (code.includes("missing-password")) {
+    return "Digite sua senha para continuar.";
+  }
+  if (code.includes("user-disabled")) {
+    return "Essa conta está desativada no momento.";
+  }
+  if (code.includes("too-many-requests")) {
+    return "Muitas tentativas seguidas. Aguarde um instante e tente novamente.";
+  }
+  if (code.includes("network-request-failed")) {
+    return "Não foi possível conectar ao Firebase. Verifique sua internet e tente de novo.";
+  }
+  if (code.includes("operation-not-allowed")) {
+    return "Esse método de login não está habilitado no Firebase deste projeto.";
+  }
+
+  const message = String(error?.message || "");
+  if (/senha|password/i.test(message)) {
+    return "A senha está incorreta ou as credenciais não conferem. Tente novamente.";
+  }
+  if (/e-mail|email/i.test(message)) {
+    return "O e-mail parece inválido. Confira se ele foi digitado corretamente.";
+  }
+  return message || "Não foi possível entrar. Confira e-mail e senha.";
+};
+
+const bootstrapAuthenticatedUser = async (user) => {
+  if (!user) return;
+  if (authBootstrapPromise && authBootstrapUid === user.uid) {
+    return authBootstrapPromise;
+  }
+
+  authBootstrapUid = user.uid;
+  authBootstrapPromise = (async () => {
+    state.user = { uid: user.uid, email: user.email };
+    state.authReady = true;
+    state.error = "";
+    expandedNodeKeys.clear();
+    archiveNodeKeys.clear();
+    openLeafMenuId = null;
+    state.nextStepReminderOpen = false;
+    resetMoodCheck();
+    dashboardOpenedAt = Date.now();
+    centeredOrganogramSnapshotId = null;
+    lastFirestoreAutoSyncSignature = "";
+    clearFirestoreTimers();
+    clearWorkspaceSyncListener();
+
+    const localState = readSavedState(state.user) || createDefaultState();
+    state.localState = materializeWorkspaceSnapshot(localState);
+    syncDerivedState();
+    state.drafts = {
+      weeklyReviewScore: null,
+    };
+    state.panelStates = {
+      weeklyReviewCollapsed: false,
+      nextStepCollapsed: false,
+    };
+    resetMoodCheck();
+    state.dirty = false;
+    state.syncMessage = "Abrindo workspace...";
+    state.dashboardPhrases = null;
+    state.dashboardPhrasesLoaded = false;
+    state.loading = false;
+    render();
+
+    const savedState = readSavedState(state.user);
+    let remoteState = null;
+
+    try {
+      remoteState = await loadUserWorkspace(state.user.uid);
+    } catch {
+      remoteState = null;
+    }
+
+    const shouldUseLocal = Boolean(savedState) && !isRemoteSnapshotNewer(remoteState, savedState);
+    const nextState = shouldUseLocal ? savedState : remoteState || savedState || createDefaultState();
+
+    state.localState = materializeWorkspaceSnapshot(nextState);
+    syncDerivedState();
+    state.drafts = {
+      weeklyReviewScore: null,
+    };
+    state.panelStates = {
+      weeklyReviewCollapsed: false,
+      nextStepCollapsed: false,
+    };
+    resetMoodCheck();
+    state.dirty = false;
+    state.syncMessage = shouldUseLocal
+      ? "Workspace local carregado e pronto para sincronizacao"
+      : remoteState
+        ? "Workspace carregado do Firestore"
+        : "Workspace inicial pronto";
+    state.dashboardPhrases = null;
+    state.dashboardPhrasesLoaded = false;
+
+    saveState();
+    renderDashboard();
+
+    await startWorkspaceSyncListener();
+
+    if (shouldUseLocal || !remoteState) {
+      await persistWorkspaceToFirestore(
+        shouldUseLocal ? "Workspace local sincronizado com a nuvem" : "Workspace criado na nuvem"
+      );
+    } else {
+      state.syncMessage = "Workspace carregado do Firestore";
+      renderDashboard();
+    }
+  })();
+
+  try {
+    return await authBootstrapPromise;
+  } finally {
+    if (authBootstrapUid === user.uid) {
+      authBootstrapPromise = null;
+      authBootstrapUid = "";
+    }
+  }
 };
 
 const buildDashboardMarkup = () =>
@@ -895,12 +1031,31 @@ const handleLoginSubmit = async (event) => {
   state.error = "";
   renderLogin();
 
+  let loginTimeoutId = null;
+
   try {
-    await signInWithEmailAndPassword(email, password);
+    const loginTimeout = new Promise((_, reject) => {
+      loginTimeoutId = window.setTimeout(() => {
+        reject(new Error("O login demorou demais para responder. Tente novamente."));
+      }, 15000);
+    });
+    const credential = await Promise.race([
+      signInWithEmailAndPassword(email, password),
+      loginTimeout,
+    ]);
+    clearTimeout(loginTimeoutId);
+    if (!credential?.user) {
+      throw new Error("Não foi possível identificar o usuário autenticado.");
+    }
+    await bootstrapAuthenticatedUser(credential.user);
   } catch (error) {
-    state.formError = error?.message || "Não foi possível entrar.";
+    clearTimeout(loginTimeoutId);
+    state.formError = formatLoginError(error);
     state.loading = false;
     renderLogin();
+    return;
+  } finally {
+    clearTimeout(loginTimeoutId);
   }
 };
 
@@ -1194,6 +1349,11 @@ async function handleDashboardClick(event) {
     return;
   }
 
+  if (action === "open-leaf-help") {
+    setLocalState((current) => toggleDashboardHelp(current, true, target.dataset.leafId));
+    return;
+  }
+
   if (action === "open-mood-check") {
     openMoodCheck();
     return;
@@ -1265,6 +1425,11 @@ async function handleDashboardClick(event) {
 
   if (action === "close-modal") {
     setLocalState((current) => toggleModal(current, false));
+    return;
+  }
+
+  if (action === "close-leaf-help") {
+    setLocalState((current) => toggleDashboardHelp(current, false));
     return;
   }
 
@@ -1355,6 +1520,10 @@ function handleDashboardChange(event) {
 
 function handleDashboardKeydown(event) {
   if (event.key !== "Escape") return;
+  if (state.localState.dashboardHelpOpen) {
+    setLocalState((current) => toggleDashboardHelp(current, false));
+    return;
+  }
   if (state.moodCheckOpen) {
     closeMoodCheck();
     return;
@@ -1374,69 +1543,7 @@ const setupAuthListener = async () => {
   try {
     await onAuthStateChanged((user) => {
       if (user) {
-        state.user = { uid: user.uid, email: user.email };
-        state.loading = true;
-        state.authReady = true;
-        state.error = "";
-        expandedNodeKeys.clear();
-        archiveNodeKeys.clear();
-        openLeafMenuId = null;
-        state.nextStepReminderOpen = false;
-        resetMoodCheck();
-        dashboardOpenedAt = Date.now();
-        centeredOrganogramSnapshotId = null;
-        lastFirestoreAutoSyncSignature = "";
-        clearFirestoreTimers();
-        clearWorkspaceSyncListener();
-        render();
-
-        (async () => {
-          const localState = readSavedState(state.user);
-          let remoteState = null;
-
-          try {
-            remoteState = await loadUserWorkspace(state.user.uid);
-          } catch {
-            remoteState = null;
-          }
-
-          const shouldUseLocal = Boolean(localState) && !isRemoteSnapshotNewer(remoteState, localState);
-          const nextState = shouldUseLocal ? localState : remoteState || localState || createDefaultState();
-
-          state.localState = materializeWorkspaceSnapshot(nextState);
-          syncDerivedState();
-          state.drafts = {
-            weeklyReviewScore: null,
-          };
-          state.panelStates = {
-            weeklyReviewCollapsed: false,
-            nextStepCollapsed: false,
-          };
-          resetMoodCheck();
-          state.dirty = false;
-          state.syncMessage = shouldUseLocal
-            ? "Workspace local carregado e pronto para sincronizacao"
-            : remoteState
-              ? "Workspace carregado do Firestore"
-              : "Workspace inicial pronto";
-          state.dashboardPhrases = null;
-          state.dashboardPhrasesLoaded = false;
-
-          saveState();
-          state.loading = false;
-          render();
-
-          await startWorkspaceSyncListener();
-
-          if (shouldUseLocal || !remoteState) {
-            await persistWorkspaceToFirestore(
-              shouldUseLocal ? "Workspace local sincronizado com a nuvem" : "Workspace criado na nuvem"
-            );
-          } else {
-            state.syncMessage = "Workspace carregado do Firestore";
-            renderDashboard();
-          }
-        })();
+        void bootstrapAuthenticatedUser(user);
         return;
       }
 

@@ -513,6 +513,8 @@ export const createDefaultState = () => {
     nextStep: buildNextStepSelection(leafSeed[0], now.toISOString()),
     showArchive: false,
     showHiddenLeaves: false,
+    dashboardHelpOpen: false,
+    dashboardHelpLeafId: "",
     leafSearchQuery: "",
     modalOpen: false,
     organogram: {
@@ -551,6 +553,8 @@ export const normalizeState = (state) => ({
       : 30,
   })),
   showHiddenLeaves: normalizeLeafBoolean(state.showHiddenLeaves),
+  dashboardHelpOpen: normalizeLeafBoolean(state.dashboardHelpOpen),
+  dashboardHelpLeafId: String(state.dashboardHelpLeafId || ""),
   organogram: {
     latest: state.organogram?.latest || null,
     history: Array.isArray(state.organogram?.history)
@@ -725,6 +729,12 @@ export const setLeafSearchQuery = (state, query) => ({
 export const toggleModal = (state, modalOpen) => ({
   ...state,
   modalOpen,
+});
+
+export const toggleDashboardHelp = (state, dashboardHelpOpen, dashboardHelpLeafId = "") => ({
+  ...state,
+  dashboardHelpOpen,
+  dashboardHelpLeafId: dashboardHelpOpen ? String(dashboardHelpLeafId || "") : "",
 });
 
 export const toggleArchive = (state) => ({

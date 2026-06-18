@@ -104,6 +104,41 @@ O prototipo ja vem com 14 folhas de exemplo, entre elas:
 - Autoconhecimento
 - Valores pessoais
 
+### Onde alterar cada folha do dashboard
+
+Se um novo desenvolvedor quiser mudar o nome, a descricao ou o comportamento de uma folha, estes sao os arquivos certos:
+
+- `src/js/services/variableService.js`
+  - define o seed das folhas no array `leafSeed`
+  - aqui ficam os campos principais de cada folha:
+    - `cardinalId`
+    - `nodeId`
+    - `nodeName`
+    - `name`
+    - `horizonDays`
+    - `currentValue`
+    - `targetValue`
+    - `note`
+    - `brothers`
+  - se quiser trocar o nome exibido por padrao no dashboard, altere o `name`
+  - se quiser trocar o texto-base da folha, altere `note`
+
+- `src/js/ui/dashboard.js`
+  - define o texto da ajuda contextual que aparece no `i` de cada folha
+  - o mapa de apoio esta em `leafHelpExamples`
+  - o modal que abre ao clicar no `i` esta em `renderLeafHelpModal`
+  - se a descricao da folha mudar, atualize tambem esse arquivo para manter a ajuda coerente com o nome novo
+
+- `src/assets/text/frases_dashboard.json`
+  - guarda as mensagens motivacionais ligadas ao nome da folha
+  - se a folha trocar de nome, vale revisar esse arquivo para manter as frases coerentes
+
+Resumo pratico:
+
+- `variableService.js` = onde a folha nasce e recebe nome/descricao base
+- `dashboard.js` = onde a folha explica para o usuario o que significa
+- `frases_dashboard.json` = onde ficam as mensagens de apoio associadas a ela
+
 ### Regras das folhas
 
 - Valor entre `49` e `99`
