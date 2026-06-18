@@ -163,8 +163,26 @@ export const createDashboardMarkup = (state) => {
       previousValue: leaf.previousValue ?? leaf.currentValue,
       progress: progressBetween(leaf.startValue, leaf.currentValue, leaf.targetValue),
     }));
-  const recentChangedLeaves = changedLeaves.slice(0, 6);
-  const remainingChangedLeaves = Math.max(0, changedLeaves.length - recentChangedLeaves.length);
+  const archiveNodeGroups = (() => {
+    const nodes = new Map();
+
+    changedLeaves.forEach((leaf) => {
+      const nodeKey = `${leaf.cardinalId}::${leaf.nodeName || "Sem grupo"}`;
+      if (!nodes.has(nodeKey)) {
+        nodes.set(nodeKey, {
+          key: nodeKey,
+          cardinalId: leaf.cardinalId,
+          cardinalName: leaf.cardinalName,
+          nodeName: leaf.nodeName || "Sem grupo",
+          nodeId: leaf.nodeId || nodeKey,
+          leaves: [],
+        });
+      }
+      nodes.get(nodeKey).leaves.push(leaf);
+    });
+
+    return [...nodes.values()];
+  })();
 
   const avgCardinal = average(state.cardinals.map((item) => item.value));
   const moodEmoji = summary.mood.emoji;
@@ -586,118 +604,68 @@ export const createDashboardMarkup = (state) => {
                   <p class="eyebrow">Card 10</p>
                   <h3>Progresso das folhas alteradas</h3>
                 </div>
+                <span class="chip chip--ghost">${changedLeaves.length} folhas em ${archiveNodeGroups.length} nós</span>
               </header>
               <div class="archive-panel">
                 ${changedLeaves.length
                   ? `
-                    <div class="archive-list">
-                      ${changedLeaves
-                        .map(
-                          (leaf) => `
-                            <div class="archive-row">
-                              <div>
-                                <strong>${leaf.name}</strong>
-                                <small>${leaf.cardinalName}</small>
+                    <div class="archive-node-stack">
+                      ${archiveNodeGroups
+                        .map((node) => {
+                          const nodeKey = node.key;
+                          const isOpen = Boolean(state.ui?.openArchiveNodeKeys?.includes(nodeKey));
+                          return `
+                            <section class="node-card archive-node-card">
+                              <div class="node-card__header-row">
+                                <button
+                                  type="button"
+                                  class="node-card__header ${isOpen ? "is-open" : ""}"
+                                  data-action="toggle-archive-node"
+                                  data-node-key="${nodeKey}"
+                                  aria-expanded="${isOpen ? "true" : "false"}"
+                                >
+                                  <div>
+                                    <h4>${node.nodeName}</h4>
+                                    <small>${node.cardinalName}</small>
+                                  </div>
+                                </button>
+                                <div class="node-card__actions">
+                                  <span class="chip">${node.leaves.length} folhas</span>
+                                </div>
                               </div>
-                              <div class="archive-row__numbers">
-                                <span>Início ${leaf.startValue}</span>
-                                <span>Meta ${leaf.targetValue}</span>
-                                <span>Atual ${leaf.currentValue}</span>
+                              <div class="leaf-stack ${isOpen ? "is-open" : ""}">
+                                ${node.leaves
+                                  .map(
+                                    (leaf) => `
+                                      <div class="archive-row archive-row--compact">
+                                        <div>
+                                          <strong>${leaf.name}</strong>
+                                          <small>${leaf.progress.toFixed(0)}% concluído</small>
+                                        </div>
+                                        <div class="archive-row__numbers">
+                                          <span>Início ${leaf.startValue}</span>
+                                          <span>Meta ${leaf.targetValue}</span>
+                                          <span>Atual ${leaf.currentValue}</span>
+                                        </div>
+                                      </div>
+                                    `
+                                  )
+                                  .join("")}
                               </div>
-                            </div>
-                          `
-                        )
+                            </section>
+                          `;
+                        })
                         .join("")}
                     </div>
-                    ${remainingChangedLeaves > 0 ? `<p class="table-note">+${remainingChangedLeaves} folhas fora da visualização.</p>` : ""}
                   `
                   : `<p class="empty-state">Nenhuma folha foi alterada ainda.</p>`}
-              </div>
-            </article>
-
-            <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="progress">
-                <header class="card__header">
-                  <div>
-                    <p class="eyebrow">Card 11</p>
-                    <h3>Últimas folhas alteradas</h3>
-                  </div>
-                </header>
-              ${
-                recentChangedLeaves.length
-                  ? `
-                    <div class="progress-table-shell progress-table-shell--compact">
-                      <table class="progress-table progress-table--compact">
-                        <thead>
-                          <tr>
-                            <th>Folha</th>
-                            <th>Antes</th>
-                            <th>Agora</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          ${recentChangedLeaves
-                            .map(
-                                (leaf) => `
-                                  <tr>
-                                    <td data-label="Folha">
-                                      <strong>${leaf.name}</strong>
-                                      <span>${leaf.cardinalName}</span>
-                                    </td>
-                                    <td data-label="Antes">${leaf.previousValue}</td>
-                                    <td data-label="Agora">${leaf.currentValue}</td>
-                                  </tr>
-                                `
-                            )
-                            .join("")}
-                        </tbody>
-                      </table>
-                    </div>
-                  `
-                  : `<p class="empty-state">Nenhuma folha foi alterada ainda.</p>`
-              }
-            </article>
-
-            <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="cardinals-summary">
-              <header class="card__header">
-                <div>
-                  <p class="eyebrow">Card 12</p>
-                  <h3>Resumo dos cardinais</h3>
-                </div>
-              </header>
-              <div class="progress-table-shell progress-table-shell--compact">
-                <table class="progress-table progress-table--compact">
-                  <thead>
-                    <tr>
-                      <th>Cardinal</th>
-                      <th>Valor</th>
-                      <th>Folhas</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${state.cardinals
-                      .map((cardinal) => {
-                        const related = activeLeaves.filter((leaf) => leaf.cardinalId === cardinal.id);
-                        return `
-                          <tr>
-                            <td data-label="Cardinal">
-                              <strong>${cardinal.name}</strong>
-                              <span>${cardinal.id}</span>
-                            </td>
-                            <td data-label="Valor">${cardinal.value}</td>
-                            <td data-label="Folhas">${related.length}</td>
-                          </tr>
-                        `;
-                      })
-                      .join("")}
-                  </tbody>
-                </table>
               </div>
             </article>
 
             <article class="card dashboard-card dashboard-card--wide" data-dashboard-section="organogram">
               <header class="card__header">
                 <div>
-                  <p class="eyebrow">Card 13</p>
+                  <p class="eyebrow">Card 11</p>
                   <h3>Organograma horizontal</h3>
                 </div>
                 <span class="chip chip--filled">
@@ -785,3 +753,4 @@ export const createDashboardMarkup = (state) => {
     }) : ""}
   `;
 };
+

@@ -92,6 +92,7 @@ let lastFirestoreAutoSyncSignature = "";
 let openLeafMenuId = null;
 let nextStepReminderTimer = null;
 const expandedNodeKeys = new Set();
+const archiveNodeKeys = new Set();
 
 const cloneState = (value) => JSON.parse(JSON.stringify(value));
 
@@ -385,6 +386,7 @@ const buildDashboardMarkup = () =>
       lastSavedAt: state.lastSavedAt,
       showHiddenLeaves: state.localState.showHiddenLeaves,
       openNodeKeys: [...expandedNodeKeys],
+      openArchiveNodeKeys: [...archiveNodeKeys],
       openLeafMenuId,
       showFirestoreSync: isFirestoreSyncVisible(),
       nextStepReminderOpen: state.nextStepReminderOpen,
@@ -1061,6 +1063,18 @@ async function handleDashboardClick(event) {
     return;
   }
 
+  if (action === "toggle-archive-node") {
+    const nodeKey = target.dataset.nodeKey;
+    if (!nodeKey) return;
+    if (archiveNodeKeys.has(nodeKey)) {
+      archiveNodeKeys.delete(nodeKey);
+    } else {
+      archiveNodeKeys.add(nodeKey);
+    }
+    patchDashboardSections(['[data-dashboard-section="archive"]']);
+    return;
+  }
+
   if (action === "scroll-top") {
     handleScrollTop();
     return;
@@ -1252,6 +1266,7 @@ const setupAuthListener = async () => {
         state.authReady = true;
         state.error = "";
         expandedNodeKeys.clear();
+        archiveNodeKeys.clear();
         openLeafMenuId = null;
         state.nextStepReminderOpen = false;
         dashboardOpenedAt = Date.now();
@@ -1322,6 +1337,7 @@ const setupAuthListener = async () => {
         nextStepCollapsed: false,
       };
       expandedNodeKeys.clear();
+      archiveNodeKeys.clear();
       openLeafMenuId = null;
       state.nextStepReminderOpen = false;
       clearTimeout(leafSearchTimer);

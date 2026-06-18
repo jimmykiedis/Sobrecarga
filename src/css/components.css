@@ -553,6 +553,11 @@ h3 {
   gap: 14px;
 }
 
+.archive-node-stack {
+  display: grid;
+  gap: 10px;
+}
+
 .node-card {
   overflow: hidden;
   border-radius: 22px;
@@ -598,6 +603,31 @@ h3 {
   opacity: 1;
   transform: translateY(0);
   padding-bottom: 14px;
+}
+
+.archive-node-card .node-card__header-row {
+  padding-top: 10px;
+}
+
+.archive-node-card .node-card__header-row > .node-card__header {
+  padding: 10px 12px;
+}
+
+.archive-node-card .leaf-stack {
+  padding-top: 8px;
+  gap: 8px;
+}
+
+.archive-row--compact {
+  padding: 10px 12px;
+}
+
+.archive-row--compact strong {
+  font-size: 0.95rem;
+}
+
+.archive-row--compact small {
+  font-size: 0.8rem;
 }
 
 .leaf-item__heading,
