@@ -101,6 +101,85 @@ const renderNextStepReminderModal = ({
   </div>
 `;
 
+export const renderMoodCheckModal = ({
+  moodEmoji,
+  moodLabel,
+  cardinals,
+  moodCheckStep = "confirm",
+  selectedCardinalId = "",
+}) => {
+  const sortedCardinals = [...cardinals].sort((left, right) => left.value - right.value);
+
+  return `
+    <div class="modal modal--mood is-open" role="dialog" aria-modal="true" aria-labelledby="mood-check-title">
+      <div class="modal__backdrop" data-action="close-mood-check"></div>
+      <div class="modal__panel modal__panel--mood">
+        <header class="modal__header">
+          <div>
+            <p class="eyebrow">Leitura emocional</p>
+            <h3 id="mood-check-title">
+              ${moodCheckStep === "cardinal" ? "Qual área da vida foi depreciada?" : "Esse emoji representa seu estado emocional atual?"}
+            </h3>
+          </div>
+          <button type="button" class="icon-button" data-action="close-mood-check" aria-label="Fechar checagem emocional">x</button>
+        </header>
+        <div class="mood-check">
+          ${
+            moodCheckStep === "cardinal"
+              ? `
+                <div class="mood-check__intro">
+                  <div class="mood-check__emoji">${moodEmoji}</div>
+                  <div>
+                    <p class="mood-check__copy">
+                      Se a leitura do app não bateu com o que você sente, escolha a área mais afetada para abrir as folhas certas.
+                    </p>
+                    <p class="panel-note">As variáveis base dessa cardinal serão abertas para ajuste imediato.</p>
+                  </div>
+                </div>
+                <div class="mood-check__cardinals">
+                  ${sortedCardinals
+                    .map(
+                      (cardinal) => `
+                        <button
+                          type="button"
+                          class="mood-check__cardinal ${selectedCardinalId === cardinal.id ? "is-active" : ""}"
+                          data-action="resolve-mood-check-cardinal"
+                          data-cardinal-id="${cardinal.id}"
+                        >
+                          <strong>${cardinal.name}</strong>
+                          <span>${cardinal.value} pontos</span>
+                        </button>
+                      `
+                    )
+                    .join("")}
+                </div>
+                <div class="card__footer card__footer--split">
+                  <button type="button" class="button button--ghost" data-action="back-mood-check">Voltar</button>
+                  <button type="button" class="button button--soft" data-action="close-mood-check">Fechar</button>
+                </div>
+              `
+              : `
+                <div class="mood-check__intro">
+                  <div class="mood-check__emoji">${moodEmoji}</div>
+                  <div>
+                    <p class="mood-check__copy">
+                      O app está lendo seu estado como <strong>${moodLabel}</strong>. Isso confere com o que você sente agora?
+                    </p>
+                    <p class="panel-note">Se não conferir, vamos direto para a área da vida que precisa ser aberta e ajustada.</p>
+                  </div>
+                </div>
+                <div class="card__footer card__footer--split">
+                  <button type="button" class="button button--soft" data-action="resolve-mood-check-yes">Sim, continua</button>
+                  <button type="button" class="button button--ghost" data-action="resolve-mood-check-no">Não, ajustar áreas</button>
+                </div>
+              `
+          }
+        </div>
+      </div>
+    </div>
+  `;
+};
+
 export const createDashboardMarkup = (state) => {
   const summary = buildReviewSummary(state);
   const openNodeKeys = new Set(state.ui?.openNodeKeys || []);
@@ -268,7 +347,15 @@ export const createDashboardMarkup = (state) => {
             <h3>Sessão atual</h3>
           </div>
           <div class="session-card__status">
-            <span class="session-card__emoji">${moodEmoji}</span>
+            <button
+              type="button"
+              class="session-card__emoji session-card__emoji-button"
+              data-action="open-mood-check"
+              aria-haspopup="dialog"
+              aria-label="Revisar se esse estado emocional está correto"
+            >
+              ${moodEmoji}
+            </button>
             <div>
               <strong data-summary="session-mood">${summary.mood.label}</strong>
               <small>Estado emocional atual</small>
@@ -278,7 +365,6 @@ export const createDashboardMarkup = (state) => {
         <div class="overview-grid session-card__grid">
           <div class="overview-panel session-card__panel">
             <div class="session-card__intro">
-              <div class="hero__emoji">${moodEmoji}</div>
               <div>
                 <p class="eyebrow">Leitura rápida</p>
                 <h2>O que importa agora, sem repetir informação demais.</h2>

@@ -29,7 +29,7 @@ import {
   listenUserWorkspace,
   saveUserWorkspace,
 } from "./firebase/firebase.js";
-import { createDashboardMarkup } from "./ui/dashboard.js";
+import { createDashboardMarkup, renderMoodCheckModal } from "./ui/dashboard.js";
 import {
   buildOrganogramSnapshot,
   downloadOrganogramSnapshot,
@@ -74,6 +74,9 @@ const state = {
     weeklyReviewCollapsed: false,
     nextStepCollapsed: false,
   },
+  moodCheckOpen: false,
+  moodCheckStep: "confirm",
+  moodCheckSelectedCardinalId: "",
   nextStepReminderOpen: false,
   dashboardPhrases: null,
   dashboardPhrasesLoaded: false,
@@ -95,6 +98,7 @@ let openLeafMenuId = null;
 let nextStepReminderTimer = null;
 const expandedNodeKeys = new Set();
 const archiveNodeKeys = new Set();
+const MOOD_CHECK_LAYER_ID = "mood-check-layer";
 
 const cloneState = (value) => JSON.parse(JSON.stringify(value));
 
@@ -214,9 +218,6 @@ const clearWorkspaceSyncListener = () => {
 const syncWorkspaceWithCloud = async (syncMessage = "Sincronizando com a nuvem...") => {
   if (!state.user || state.loading || state.saving) return;
 
-  state.syncMessage = syncMessage;
-  renderDashboard();
-
   try {
     const remoteSnapshot = await loadUserWorkspace(state.user.uid);
     if (isRemoteSnapshotNewer(remoteSnapshot, state.localState)) {
@@ -225,12 +226,8 @@ const syncWorkspaceWithCloud = async (syncMessage = "Sincronizando com a nuvem..
       return;
     }
 
-    if (!remoteSnapshot || isRemoteSnapshotNewer(state.localState, remoteSnapshot)) {
-      await persistWorkspaceToFirestore(
-        remoteSnapshot ? "Workspace sincronizado automaticamente com a nuvem" : "Workspace criado na nuvem"
-      );
-      return;
-    }
+    state.syncMessage = syncMessage;
+    return;
 
     state.syncMessage = "Workspace já sincronizado";
     renderDashboard();
@@ -248,24 +245,12 @@ const startWorkspaceSyncListener = async () => {
     firestoreWorkspaceListener = await listenUserWorkspace(state.user.uid, (remoteSnapshot) => {
       if (!state.user || state.loading) return;
 
-      if (!remoteSnapshot) {
-        if (state.dirty) {
-          scheduleFirestoreAutoSync();
-        } else {
-          state.syncMessage = "Aguardando o primeiro salvamento na nuvem";
-          renderDashboard();
-        }
-        return;
-      }
+      if (!remoteSnapshot) return;
 
       if (isRemoteSnapshotNewer(remoteSnapshot, state.localState)) {
         applyWorkspaceSnapshot(remoteSnapshot, "Workspace atualizado automaticamente pela nuvem");
         state.lastSavedAt = remoteSnapshot.updatedAt || state.lastSavedAt;
         return;
-      }
-
-      if (isRemoteSnapshotNewer(state.localState, remoteSnapshot) && state.dirty) {
-        scheduleFirestoreAutoSync();
       }
     });
   } catch (error) {
@@ -358,6 +343,9 @@ const renderDashboard = () => {
   app.innerHTML = buildDashboardMarkup();
   bindDashboardEvents();
   runDashboardEffects();
+  if (state.moodCheckOpen) {
+    renderMoodCheckOverlay();
+  }
   requestAnimationFrame(() => {
     const chart = app.querySelector(".radar-chart");
     if (chart) {
@@ -450,6 +438,80 @@ const closeNextStepReminder = () => {
   renderDashboard();
 };
 
+const getMoodCheckOverlay = () => app.querySelector(`#${MOOD_CHECK_LAYER_ID}`);
+
+const renderMoodCheckOverlay = () => {
+  const summary = buildReviewSummary(state.localState);
+  const existing = getMoodCheckOverlay();
+  if (existing) {
+    existing.remove();
+  }
+
+  if (!state.moodCheckOpen) return;
+
+  const layer = document.createElement("div");
+  layer.id = MOOD_CHECK_LAYER_ID;
+  layer.innerHTML = renderMoodCheckModal({
+    moodEmoji: summary.mood.emoji,
+    moodLabel: summary.mood.label,
+    cardinals: state.localState.cardinals,
+    moodCheckStep: state.moodCheckStep,
+    selectedCardinalId: state.moodCheckSelectedCardinalId,
+  });
+  app.appendChild(layer);
+};
+
+const resetMoodCheck = () => {
+  state.moodCheckOpen = false;
+  state.moodCheckStep = "confirm";
+  state.moodCheckSelectedCardinalId = "";
+};
+
+const openMoodCheck = () => {
+  state.moodCheckOpen = true;
+  state.moodCheckStep = "confirm";
+  state.moodCheckSelectedCardinalId = "";
+  renderMoodCheckOverlay();
+};
+
+const closeMoodCheck = () => {
+  if (!state.moodCheckOpen) return;
+  resetMoodCheck();
+  const overlay = getMoodCheckOverlay();
+  if (overlay) overlay.remove();
+};
+
+const showMoodCheckCardinals = () => {
+  state.moodCheckStep = "cardinal";
+  state.moodCheckSelectedCardinalId = "";
+  renderMoodCheckOverlay();
+};
+
+const showMoodCheckConfirm = () => {
+  state.moodCheckStep = "confirm";
+  state.moodCheckSelectedCardinalId = "";
+  renderMoodCheckOverlay();
+};
+
+const focusCardinalPanel = (cardinalId) => {
+  requestAnimationFrame(() => {
+    const panel = app.querySelector(`[data-dashboard-section="cardinal-panel"][data-cardinal-id="${cardinalId}"]`);
+    if (panel) {
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+};
+
+const resolveMoodCheckCardinal = (cardinalId) => {
+  if (!cardinalId) return;
+  openNodesForCardinal(cardinalId);
+  resetMoodCheck();
+  const overlay = getMoodCheckOverlay();
+  if (overlay) overlay.remove();
+  renderDashboard();
+  focusCardinalPanel(cardinalId);
+};
+
 const scheduleNextStepReminderCheck = () => {
   clearNextStepReminderTimer();
   if (!state.user || state.loading) return;
@@ -498,45 +560,7 @@ const scheduleFirestoreButtonReveal = () => {
   }, remaining + 50);
 };
 
-const scheduleFirestoreAutoSync = () => {
-  if (!state.user || state.loading || state.saving || !state.dirty) return;
-  const signature = state.localState?.updatedAt || "";
-  if (!signature || signature === lastFirestoreAutoSyncSignature) return;
-  if (firestoreAutoSyncTimer && pendingFirestoreAutoSyncSignature === signature) return;
-
-  clearTimeout(firestoreAutoSyncTimer);
-  pendingFirestoreAutoSyncSignature = signature;
-  firestoreAutoSyncTimer = window.setTimeout(async () => {
-    firestoreAutoSyncTimer = null;
-    if (!state.user || state.loading || !state.dirty) {
-      if (pendingFirestoreAutoSyncSignature === signature) {
-        pendingFirestoreAutoSyncSignature = "";
-      }
-      return;
-    }
-
-    if ((state.localState?.updatedAt || "") !== signature) {
-      if (pendingFirestoreAutoSyncSignature === signature) {
-        pendingFirestoreAutoSyncSignature = "";
-      }
-      scheduleFirestoreAutoSync();
-      return;
-    }
-
-    const saved = await persistWorkspaceToFirestore("Sincronizado automaticamente", { silent: true });
-    if (saved && (state.localState?.updatedAt || "") === signature) {
-      lastFirestoreAutoSyncSignature = signature;
-    }
-
-    if (pendingFirestoreAutoSyncSignature === signature) {
-      pendingFirestoreAutoSyncSignature = "";
-    }
-
-    if (state.dirty) {
-      scheduleFirestoreAutoSync();
-    }
-  }, BD_COOLDOWN_SYNC);
-};
+const scheduleFirestoreAutoSync = () => {};
 
 const runDashboardEffects = () => {
   scheduleFirestoreButtonReveal();
@@ -1170,6 +1194,36 @@ async function handleDashboardClick(event) {
     return;
   }
 
+  if (action === "open-mood-check") {
+    openMoodCheck();
+    return;
+  }
+
+  if (action === "resolve-mood-check-yes") {
+    closeMoodCheck();
+    return;
+  }
+
+  if (action === "resolve-mood-check-no") {
+    showMoodCheckCardinals();
+    return;
+  }
+
+  if (action === "close-mood-check") {
+    closeMoodCheck();
+    return;
+  }
+
+  if (action === "back-mood-check") {
+    showMoodCheckConfirm();
+    return;
+  }
+
+  if (action === "resolve-mood-check-cardinal") {
+    resolveMoodCheckCardinal(target.dataset.cardinalId);
+    return;
+  }
+
   if (action === "toggle-next-step-card") {
     setNextStepCollapsed(false);
     return;
@@ -1301,6 +1355,10 @@ function handleDashboardChange(event) {
 
 function handleDashboardKeydown(event) {
   if (event.key !== "Escape") return;
+  if (state.moodCheckOpen) {
+    closeMoodCheck();
+    return;
+  }
   if (openLeafMenuId) {
     openLeafMenuId = null;
     renderDashboard();
@@ -1324,6 +1382,7 @@ const setupAuthListener = async () => {
         archiveNodeKeys.clear();
         openLeafMenuId = null;
         state.nextStepReminderOpen = false;
+        resetMoodCheck();
         dashboardOpenedAt = Date.now();
         centeredOrganogramSnapshotId = null;
         lastFirestoreAutoSyncSignature = "";
@@ -1353,6 +1412,7 @@ const setupAuthListener = async () => {
             weeklyReviewCollapsed: false,
             nextStepCollapsed: false,
           };
+          resetMoodCheck();
           state.dirty = false;
           state.syncMessage = shouldUseLocal
             ? "Workspace local carregado e pronto para sincronizacao"
@@ -1391,6 +1451,7 @@ const setupAuthListener = async () => {
         weeklyReviewCollapsed: false,
         nextStepCollapsed: false,
       };
+      resetMoodCheck();
       expandedNodeKeys.clear();
       archiveNodeKeys.clear();
       openLeafMenuId = null;
