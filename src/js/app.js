@@ -26,6 +26,7 @@ import {
   signOut,
   isFirebaseReady,
   loadUserWorkspace,
+  listenUserWorkspace,
   saveUserWorkspace,
 } from "./firebase/firebase.js";
 import { createDashboardMarkup } from "./ui/dashboard.js";
@@ -85,6 +86,8 @@ let centeredOrganogramSnapshotId = null;
 let dashboardOpenedAt = null;
 let firestoreButtonRevealTimer = null;
 let firestoreAutoSyncTimer = null;
+let firestoreWorkspaceListener = null;
+let workspaceRecoveryEventsBound = false;
 let lastFirestoreAutoSyncSignature = "";
 let openLeafMenuId = null;
 let nextStepReminderTimer = null;
@@ -106,14 +109,55 @@ const ensureDashboardPhrasesLoaded = async () => {
 };
 
 const storageKey = (user) => `${STORAGE_PREFIX}${user.uid || user.email || "guest"}`;
+const DEVICE_ID_STORAGE_KEY = "sobrecarga-device-id";
 
-const loadSavedState = (user) => {
+const getWorkspaceDeviceId = () => {
+  try {
+    const existing = localStorage.getItem(DEVICE_ID_STORAGE_KEY);
+    if (existing) return existing;
+    const generated =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `device-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    localStorage.setItem(DEVICE_ID_STORAGE_KEY, generated);
+    return generated;
+  } catch {
+    return `device-${Date.now()}`;
+  }
+};
+
+const getWorkspaceActorId = () => state.user?.uid || state.user?.email || "anonymous";
+
+const normalizeWorkspaceMeta = (meta = {}) => {
+  const revision = Number(meta.revision);
+  return {
+    revision: Number.isFinite(revision) && revision > 0 ? Math.floor(revision) : 1,
+    lastModifiedAt: String(meta.lastModifiedAt || ""),
+    lastModifiedBy: String(meta.lastModifiedBy || ""),
+    lastModifiedDeviceId: String(meta.lastModifiedDeviceId || ""),
+  };
+};
+
+const bumpWorkspaceMeta = (workspace) => {
+  const currentMeta = normalizeWorkspaceMeta(workspace?.workspaceMeta);
+  return {
+    ...workspace,
+    workspaceMeta: {
+      revision: currentMeta.revision + 1,
+      lastModifiedAt: new Date().toISOString(),
+      lastModifiedBy: getWorkspaceActorId(),
+      lastModifiedDeviceId: getWorkspaceDeviceId(),
+    },
+  };
+};
+
+const readSavedState = (user) => {
   try {
     const saved = localStorage.getItem(storageKey(user));
-    if (!saved) return createDefaultState();
+    if (!saved) return null;
     return rolloverDailySnapshot(mergeStateWithSeed(JSON.parse(saved)));
   } catch {
-    return createDefaultState();
+    return null;
   }
 };
 
@@ -121,6 +165,129 @@ const saveState = () => {
   if (!state.user) return;
   state.localState = rolloverDailySnapshot(state.localState);
   localStorage.setItem(storageKey(state.user), JSON.stringify(state.localState));
+};
+
+const materializeWorkspaceSnapshot = (snapshot) =>
+  rolloverDailySnapshot(mergeStateWithSeed(normalizeState({ ...createDefaultState(), ...snapshot })));
+
+const getSnapshotTimestamp = (snapshot) => {
+  const timestamp = Date.parse(snapshot?.updatedAt || "");
+  return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+const getWorkspaceRevision = (snapshot) => normalizeWorkspaceMeta(snapshot?.workspaceMeta).revision;
+
+const getWorkspaceSyncRank = (snapshot) => {
+  const revision = getWorkspaceRevision(snapshot);
+  const timestamp = getSnapshotTimestamp(snapshot);
+  return { revision, timestamp };
+};
+
+const isRemoteSnapshotNewer = (remoteSnapshot, localSnapshot) => {
+  if (!remoteSnapshot) return false;
+  if (!localSnapshot) return true;
+
+  const remoteRank = getWorkspaceSyncRank(remoteSnapshot);
+  const localRank = getWorkspaceSyncRank(localSnapshot);
+
+  if (remoteRank.revision !== localRank.revision) {
+    return remoteRank.revision > localRank.revision;
+  }
+
+  if (remoteRank.timestamp !== localRank.timestamp) {
+    return remoteRank.timestamp > localRank.timestamp;
+  }
+
+  return false;
+};
+
+const clearWorkspaceSyncListener = () => {
+  if (typeof firestoreWorkspaceListener === "function") {
+    firestoreWorkspaceListener();
+  }
+  firestoreWorkspaceListener = null;
+};
+
+const syncWorkspaceWithCloud = async (syncMessage = "Sincronizando com a nuvem...") => {
+  if (!state.user || state.loading || state.saving) return;
+
+  state.syncMessage = syncMessage;
+  renderDashboard();
+
+  try {
+    const remoteSnapshot = await loadUserWorkspace(state.user.uid);
+    if (isRemoteSnapshotNewer(remoteSnapshot, state.localState)) {
+      applyWorkspaceSnapshot(remoteSnapshot, "Workspace atualizado automaticamente pela nuvem");
+      state.lastSavedAt = remoteSnapshot.updatedAt || state.lastSavedAt;
+      return;
+    }
+
+    if (!remoteSnapshot || isRemoteSnapshotNewer(state.localState, remoteSnapshot)) {
+      await persistWorkspaceToFirestore(
+        remoteSnapshot ? "Workspace sincronizado automaticamente com a nuvem" : "Workspace criado na nuvem"
+      );
+      return;
+    }
+
+    state.syncMessage = "Workspace já sincronizado";
+    renderDashboard();
+  } catch (error) {
+    state.syncMessage = error?.message || "Falha ao sincronizar com a nuvem";
+    renderDashboard();
+  }
+};
+
+const startWorkspaceSyncListener = async () => {
+  clearWorkspaceSyncListener();
+  if (!state.user) return;
+
+  try {
+    firestoreWorkspaceListener = await listenUserWorkspace(state.user.uid, (remoteSnapshot) => {
+      if (!state.user || state.loading) return;
+
+      if (!remoteSnapshot) {
+        if (state.dirty) {
+          scheduleFirestoreAutoSync();
+        } else {
+          state.syncMessage = "Aguardando o primeiro salvamento na nuvem";
+          renderDashboard();
+        }
+        return;
+      }
+
+      if (isRemoteSnapshotNewer(remoteSnapshot, state.localState)) {
+        applyWorkspaceSnapshot(remoteSnapshot, "Workspace atualizado automaticamente pela nuvem");
+        state.lastSavedAt = remoteSnapshot.updatedAt || state.lastSavedAt;
+        return;
+      }
+
+      if (isRemoteSnapshotNewer(state.localState, remoteSnapshot) && state.dirty) {
+        scheduleFirestoreAutoSync();
+      }
+    });
+  } catch (error) {
+    state.syncMessage = error?.message || "Falha ao conectar a sincronização em tempo real";
+    renderDashboard();
+  }
+};
+
+const handleWorkspaceRecovery = () => {
+  if (!state.user || state.loading) return;
+  void syncWorkspaceWithCloud("Retomando sincronização com a nuvem...");
+};
+
+const handleVisibilityRecovery = () => {
+  if (document.visibilityState !== "visible") return;
+  handleWorkspaceRecovery();
+};
+
+const bindWorkspaceRecoveryEvents = () => {
+  if (workspaceRecoveryEventsBound) return;
+  window.addEventListener("online", handleWorkspaceRecovery, { passive: true });
+  window.addEventListener("focus", handleWorkspaceRecovery, { passive: true });
+  window.addEventListener("pageshow", handleWorkspaceRecovery, { passive: true });
+  document.addEventListener("visibilitychange", handleVisibilityRecovery, { passive: true });
+  workspaceRecoveryEventsBound = true;
 };
 
 const syncDerivedState = () => {
@@ -252,6 +419,9 @@ const recordNextStepReminderShown = (dateStamp) => {
       reminderLastShownDateStamp: dateStamp,
     },
   };
+  state.localState = bumpWorkspaceMeta(state.localState);
+  syncDerivedState();
+  state.dirty = true;
   saveState();
 };
 
@@ -566,6 +736,7 @@ const refreshLeafModalResults = () => {
 
 const setLocalStatePartial = (updater, partialSelectors) => {
   state.localState = rolloverDailySnapshot(normalizeState(updater(cloneState(state.localState))));
+  state.localState = bumpWorkspaceMeta(state.localState);
   syncDerivedState();
   state.dirty = true;
   state.syncMessage = "AlteraÃ§Ãµes salvas localmente";
@@ -575,12 +746,11 @@ const setLocalStatePartial = (updater, partialSelectors) => {
 };
 
 const applyWorkspaceSnapshot = (nextState, syncMessage) => {
-  state.localState = rolloverDailySnapshot(
-    mergeStateWithSeed(normalizeState({ ...createDefaultState(), ...nextState }))
-  );
+  state.localState = materializeWorkspaceSnapshot(nextState);
   syncDerivedState();
   state.dirty = false;
   state.syncMessage = syncMessage;
+  state.lastSavedAt = new Date().toISOString();
   state.nextStepReminderOpen = false;
   state.drafts = {
     weeklyReviewScore: null,
@@ -647,6 +817,7 @@ const render = () => {
 
 const setLocalState = (updater) => {
   state.localState = rolloverDailySnapshot(normalizeState(updater(cloneState(state.localState))));
+  state.localState = bumpWorkspaceMeta(state.localState);
   syncDerivedState();
   state.dirty = true;
   state.syncMessage = "Alterações salvas localmente";
@@ -688,7 +859,7 @@ const persistWorkspaceToFirestore = async (successMessage = "Salvo no Firestore"
 
   try {
     await saveUserWorkspace(state.user.uid, state.localState);
-    state.lastSavedAt = new Date().toISOString();
+    state.lastSavedAt = state.localState.updatedAt || new Date().toISOString();
     state.dirty = false;
     state.syncMessage = successMessage;
     return true;
@@ -706,29 +877,7 @@ const handleManualFirestoreSave = async () => {
 };
 
 const handleFirestoreSync = async () => {
-  if (!state.user) return;
-  if (state.dirty && !window.confirm("Isso vai substituir os valores locais pelos dados do Firestore. Continuar?")) {
-    return;
-  }
-
-  state.loading = true;
-  state.syncMessage = "Carregando dados do Firestore...";
-  renderDashboard();
-
-  try {
-    const remote = await loadUserWorkspace(state.user.uid);
-    if (!remote) {
-      state.syncMessage = "Nenhum workspace encontrado no Firestore";
-      return;
-    }
-
-    applyWorkspaceSnapshot(remote, "Sincronizado com o Firestore");
-  } catch (error) {
-    state.syncMessage = error?.message || "Falha ao sincronizar com o Firestore";
-  } finally {
-    state.loading = false;
-    renderDashboard();
-  }
+  await syncWorkspaceWithCloud("Sincronizando manualmente com a nuvem...");
 };
 
 const handleGenerateOrganogram = async () => {
@@ -1098,33 +1247,67 @@ const setupAuthListener = async () => {
   try {
     await onAuthStateChanged((user) => {
       if (user) {
-        expandedNodeKeys.clear();
-        openLeafMenuId = null;
-        state.nextStepReminderOpen = false;
         state.user = { uid: user.uid, email: user.email };
         state.loading = true;
         state.authReady = true;
         state.error = "";
+        expandedNodeKeys.clear();
+        openLeafMenuId = null;
+        state.nextStepReminderOpen = false;
         dashboardOpenedAt = Date.now();
         centeredOrganogramSnapshotId = null;
         lastFirestoreAutoSyncSignature = "";
         clearFirestoreTimers();
+        clearWorkspaceSyncListener();
         render();
-        state.localState = loadSavedState(state.user);
-        state.drafts = {
-          weeklyReviewScore: null,
-        };
-        state.panelStates = {
-          weeklyReviewCollapsed: false,
-          nextStepCollapsed: false,
-        };
-      state.loading = false;
-      state.dirty = false;
-      state.syncMessage = "Workspace atualizado com a árvore atual";
-      state.dashboardPhrases = null;
-      state.dashboardPhrasesLoaded = false;
-      render();
-      return;
+
+        (async () => {
+          const localState = readSavedState(state.user);
+          let remoteState = null;
+
+          try {
+            remoteState = await loadUserWorkspace(state.user.uid);
+          } catch {
+            remoteState = null;
+          }
+
+          const shouldUseLocal = Boolean(localState) && !isRemoteSnapshotNewer(remoteState, localState);
+          const nextState = shouldUseLocal ? localState : remoteState || localState || createDefaultState();
+
+          state.localState = materializeWorkspaceSnapshot(nextState);
+          syncDerivedState();
+          state.drafts = {
+            weeklyReviewScore: null,
+          };
+          state.panelStates = {
+            weeklyReviewCollapsed: false,
+            nextStepCollapsed: false,
+          };
+          state.dirty = false;
+          state.syncMessage = shouldUseLocal
+            ? "Workspace local carregado e pronto para sincronizacao"
+            : remoteState
+              ? "Workspace carregado do Firestore"
+              : "Workspace inicial pronto";
+          state.dashboardPhrases = null;
+          state.dashboardPhrasesLoaded = false;
+
+          saveState();
+          state.loading = false;
+          render();
+
+          await startWorkspaceSyncListener();
+
+          if (shouldUseLocal || !remoteState) {
+            await persistWorkspaceToFirestore(
+              shouldUseLocal ? "Workspace local sincronizado com a nuvem" : "Workspace criado na nuvem"
+            );
+          } else {
+            state.syncMessage = "Workspace carregado do Firestore";
+            renderDashboard();
+          }
+        })();
+        return;
       }
 
       state.user = null;
@@ -1152,6 +1335,7 @@ const setupAuthListener = async () => {
       state.dashboardPhrases = null;
       state.dashboardPhrasesLoaded = false;
       clearFirestoreTimers();
+      clearWorkspaceSyncListener();
       clearNextStepReminderTimer();
       unbindDashboardEvents();
       render();
@@ -1168,9 +1352,7 @@ window.addEventListener("storage", (event) => {
   if (!state.user) return;
   if (event.key !== storageKey(state.user) || !event.newValue) return;
   try {
-    state.localState = rolloverDailySnapshot(
-      normalizeState({ ...createDefaultState(), ...JSON.parse(event.newValue) })
-    );
+    state.localState = materializeWorkspaceSnapshot(JSON.parse(event.newValue));
     renderDashboard();
   } catch {
     // Mantém o estado atual se o payload externo vier inválido.
@@ -1179,6 +1361,7 @@ window.addEventListener("storage", (event) => {
 
 setupAuthListener();
 bindScrollTopButtonBehavior();
+bindWorkspaceRecoveryEvents();
 render();
 
 if ("serviceWorker" in navigator) {
@@ -1188,3 +1371,4 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+

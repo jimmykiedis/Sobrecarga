@@ -52,6 +52,7 @@ const renderNextStepReminderModal = ({
   weeklyReviewScore,
   weeklyReviewNote = "",
   motivationalMessage,
+  syncMessage = "",
 }) => `
   <div class="modal modal--reminder is-open" role="dialog" aria-modal="true" aria-labelledby="next-step-reminder-title">
     <div class="modal__backdrop" data-action="close-next-step-reminder"></div>
@@ -68,6 +69,10 @@ const renderNextStepReminderModal = ({
         <div class="next-step-panel__motivation">
           <p class="eyebrow">Mensagem do dia</p>
           <p>${motivationalMessage || "Carregando mensagem personalizada..."}</p>
+        </div>
+        <div class="next-step-panel__sync">
+          <p class="eyebrow">Sincronização</p>
+          <p>${syncMessage || "Sincronizando em segundo plano..."}</p>
         </div>
         <p class="review-panel__score">
           Resultado atual:
@@ -776,6 +781,7 @@ export const createDashboardMarkup = (state) => {
       nextStep,
       weeklyReviewScore,
       motivationalMessage,
+      syncMessage: state.ui?.syncMessage,
     }) : ""}
   `;
 };

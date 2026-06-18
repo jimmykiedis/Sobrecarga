@@ -1,4 +1,5 @@
-const FIREBASE_CONFIG = window.__FIREBASE_CONFIG__ || null;
+import { FIREBASE_CONFIG } from "./firebaseConfig.js";
+
 const FIREBASE_VERSION = "10.12.5";
 let firebaseAuthPromise = null;
 let firebaseFirestorePromise = null;

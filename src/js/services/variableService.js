@@ -7,6 +7,17 @@ const now = new Date();
 const getDueDateStamp = (dateLike, days) => getLocalDateStamp(addDays(dateLike, days));
 const todayStamp = getLocalDateStamp(now);
 export const CURRENT_SCHEMA_VERSION = 5;
+const normalizeRevision = (value) => {
+  const revision = Number(value);
+  return Number.isFinite(revision) && revision > 0 ? Math.floor(revision) : 1;
+};
+
+const normalizeWorkspaceMeta = (meta = {}) => ({
+  revision: normalizeRevision(meta.revision),
+  lastModifiedAt: String(meta.lastModifiedAt || ""),
+  lastModifiedBy: String(meta.lastModifiedBy || ""),
+  lastModifiedDeviceId: String(meta.lastModifiedDeviceId || ""),
+});
 
 const cardinalDefinitions = [
   { id: "identidade", name: "Identidade", color: "#f59e0b", icon: "◌" },
@@ -480,6 +491,12 @@ export const createDefaultState = () => {
 
   return {
     schemaVersion: CURRENT_SCHEMA_VERSION,
+    workspaceMeta: {
+      revision: 1,
+      lastModifiedAt: new Date().toISOString(),
+      lastModifiedBy: "seed",
+      lastModifiedDeviceId: "seed",
+    },
     cardinals,
     baseVariables: leafSeed.map((item) => ({
       ...item,
@@ -508,6 +525,7 @@ export const createDefaultState = () => {
 
 export const normalizeState = (state) => ({
   ...state,
+  workspaceMeta: normalizeWorkspaceMeta(state.workspaceMeta),
   cardinals: (state.cardinals || []).map((cardinal) => ({
     ...cardinal,
     value: clamp(cardinal.value, 49, 99),
@@ -791,6 +809,10 @@ export const mergeStateWithSeed = (savedState) => {
   return normalizeState({
     ...seedState,
     ...savedState,
+    workspaceMeta: normalizeWorkspaceMeta({
+      ...seedState.workspaceMeta,
+      ...savedState?.workspaceMeta,
+    }),
     baseVariables: normalizedBaseVariables,
     nextStep: buildNextStepSelection(nextStepLeaf, savedNextStep.selectedAt || seedState.nextStep.selectedAt, {
       horizonDays: savedNextStep.horizonDays,

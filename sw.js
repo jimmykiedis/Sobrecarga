@@ -1,4 +1,4 @@
-const CACHE_NAME = "sobrecarga-shell-v2";
+const CACHE_NAME = "sobrecarga-shell-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const ASSETS = [
   "./src/css/components.css",
   "./src/css/app.css",
   "./src/js/app.js",
+  "./src/js/firebase/firebaseConfig.js",
   "./src/js/firebase/firebase.js",
   "./src/js/models/BaseVariable.js",
   "./src/js/models/CardinalVariable.js",

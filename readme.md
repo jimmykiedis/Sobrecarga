@@ -50,8 +50,10 @@ O menu principal ja renderiza 11 cards:
 
 ### Persistencia remota
 
-- O envio para o Firestore agora e manual.
-- O botao `Salvar` sobe o estado atual para o Firestore.
+- O envio para o Firestore e automatico e continuo.
+- O app sincroniza ao abrir, ao retomar foco, ao voltar da suspensao e depois das alteracoes locais.
+- O botao `Salvar` continua como atalho opcional para forcar a sincronizacao.
+- O workspace leva metadados de revisao para ajudar a resolver conflitos entre dispositivos.
 - O `localStorage` e salvo automaticamente a cada alteracao.
 - O primeiro conjunto de cardinais e folhas aparece localmente como seed do prototipo.
 
@@ -253,9 +255,9 @@ sobrecarga/
 
 ## Configuracao do Firebase
 
-Hoje a configuracao do Firebase esta injetada diretamente em `index.html` por meio de `window.__FIREBASE_CONFIG__`.
+Hoje a configuracao do Firebase fica centralizada em `src/js/firebase/firebaseConfig.js`.
 
-Isso funciona para desenvolvimento, mas o ideal e mover essa configuracao para um mecanismo de ambiente antes de publicar em producao.
+Isso evita divergencias entre `localhost`, GitHub Pages e scripts locais, porque a mesma origem de verdade alimenta o app e os utilitarios do projeto.
 
 ### O que precisa existir no Firebase
 

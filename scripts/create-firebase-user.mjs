@@ -1,5 +1,6 @@
-const DEFAULT_API_KEY = "AIzaSyC05WQs9sMscvFh09N39P4spU7IXKTxbzY";
-const apiKey = process.env.FIREBASE_API_KEY || DEFAULT_API_KEY;
+import { FIREBASE_CONFIG } from "../src/js/firebase/firebaseConfig.js";
+
+const apiKey = process.env.FIREBASE_API_KEY || FIREBASE_CONFIG.apiKey;
 const email = process.env.FIREBASE_EMAIL;
 const password = process.env.FIREBASE_PASSWORD;
 const displayName = process.env.FIREBASE_DISPLAY_NAME || "Sobrecarga";
