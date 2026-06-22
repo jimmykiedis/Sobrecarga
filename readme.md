@@ -22,8 +22,8 @@ O objetivo e dar clareza para o usuario revisar como esta, o que mudou e qual pa
       <em>desktop view</em>
     </td>
     <td align="center">
-      <img src=public/docs/1loginscreenM.png height=250><br>
-      <em>mobile view</me>
+      <img src="public/docs/1loginscreenM.png" height=250><br>
+      <em>mobile view</em>
     </td>
   </tr>
 </table>
@@ -51,11 +51,11 @@ O menu principal ja renderiza 11 cards:
   <tr>
     <td align="center">
       <img src="public/docs/4cards234567.png" height=250><br>
-      <em>desktop view<em>
+      <em>desktop view</em>
     </td>
     <td>
-      <img src='public/docs/4cards234567M.png' height=250><br>
-      <em>mobile view<em>
+      <img src="public/docs/4cards234567M.png" height=250><br>
+      <em>mobile view</em>
     </td>
   </tr>
 </table>
@@ -74,7 +74,7 @@ O menu principal ja renderiza 11 cards:
     </td>
     <td align="center">
       <img src="public/docs/2card8M.png" height=250>
-      <em>mobile view<em>
+      <em>mobile view</em>
     </td>
   </tr>
 </table>
@@ -170,10 +170,12 @@ Como o protótipo ainda está em fase te testes, ainda não fomos capaz de impla
 <table align="center">
   <tr>
     <td align="center">
-      <img src="public/docs/folhanome.png" height=150>
+      <img src="public/docs/folhanome.png" height=150><br>
+      <em>desktop view</em>
     </td>
     <td align="center">
-      <img src="public/docs/folhanomeM.png" height=150>
+      <img src="public/docs/folhanomeM.png" height=150><br>
+      <em>mobile view</em>
     </td>
   </tr>
 </table>
@@ -182,11 +184,11 @@ Quando o usuário propõe pra se que as folhas que vieram como semente no nosso 
 <table align="center">
   <tr>
     <td align="center">
-      <img src="public/docs/folha+.png" height=150>
+      <img src="public/docs/folha+.png" height=150><br>
       <em>desktop view</em>
     </td>
     <td align="center">
-      <img src="public/docs/folha+M.png" height=150>
+      <img src="public/docs/folha+M.png" height=150><br>
       <em>mobile view</em>
     </td>
   </tr>
