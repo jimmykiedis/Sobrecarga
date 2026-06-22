@@ -15,21 +15,81 @@ O objetivo e dar clareza para o usuario revisar como esta, o que mudou e qual pa
 - Integracao com Firebase Authentication.
 - Tela responsiva com estado de carregamento e erro.
 
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="public/docs/1loginscreen.png" height=250><br>
+      <em>desktop view</em>
+    </td>
+    <td align="center">
+      <img src=public/docs/1loginscreenM.png height=250><br>
+      <em>mobile view</me>
+    </td>
+  </tr>
+</table>
+
 ### Tela 2: Menu principal
 
 O menu principal ja renderiza 11 cards:
 
-1. Resumo simples a esquerda e radar chart a direita.
-2. Variaveis cardinais com botoes `-` e `+` e valor central entre `49` e `99`.
-3. Card da variavel base ligada a cardinal `Identidade`.
-4. Card da variavel base ligada a cardinal `Saude Mental`.
-5. Card da variavel base ligada a cardinal `Saude Fisica`.
-6. Card da variavel base ligada a cardinal `Familia`.
-7. Card da variavel base ligada a cardinal `Profissional`.
-8. Pergunta semanal com escala de `-3` a `+3`.
-9. Pergunta do proximo passo concreto com modal de busca das folhas.
+1. Resumo simples com os dados mais relevante com gráfico.
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="public/docs/3home.png" height=250><br>
+      <em>desktop view</em>
+    </td>
+    <td align="center">
+      <img src="public/docs/3homeM1.png" height=250><br>
+      <em>mobile view</em>
+    </td>
+  </tr>
+</table>
+
+2. Variaveis cardinais referentes aos campo da vida do usuário com valores entre `49` e `99`.
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="public/docs/4cards234567.png" height=250><br>
+      <em>desktop view<em>
+    </td>
+    <td>
+      <img src='public/docs/4cards234567M.png' height=250><br>
+      <em>mobile view<em>
+    </td>
+  </tr>
+</table>
+
+3. Card das Variáveis base ligadas à cardinal `Identidade`.
+4. Card das Variáveis base ligadas à cardinal `Saude Mental`.
+5. Card das Variáveis base ligadas à cardinal `Saude Fisica`.
+6. Card das Variáveis base ligadas à cardinal `Familia`.
+7. Card das Variáveis base ligadas à cardinal `Profissional`.
+8. Pop-up que pergunta do progresso em um intervalo relativo em uma escala de `-3` a `+3`.
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src ="public/docs/2card8.png" height=250><br>
+      <em>desktop view</em>
+    </td>
+    <td align="center">
+      <img src="public/docs/2card8M.png" height=250>
+      <em>mobile view<em>
+    </td>
+  </tr>
+</table>
+
+9.  Pergunta do proximo passo concreto com modal de busca das folhas ligado ao card 8.
 10. Card oculto com botao `...` para mostrar folhas alteradas e historico de valores.
-11. Grafico com o progresso medio das variaveis cardinais.
+11. Organograma com o progresso das variaveis cardinais às cardinais.
+<a href="public/docs/6organograma.png">
+  <p align=center>
+    <img src="public/docs/6organograma.png" height=300><br>
+    <em>downloaded from user exemple</em>
+  </p>
+</a>
+
+
 
 ### PWA
 
@@ -63,7 +123,7 @@ O menu principal ja renderiza 11 cards:
 
 ### Variaveis cardinais
 
-O prototipo ja vem com 5 cardinais:
+O prototipo tem por regra 5 variáveis cardinais:
 
 - Identidade
 - Saude Mental
@@ -79,7 +139,7 @@ O prototipo ja vem com 5 cardinais:
   - Saude Fisica
   - Familia
   - Profissional
-- Nivel 2: cards internos dentro de cada tronco
+- Nivel 2: cards internos (galhos) dentro de cada tronco
 - Nivel 3: folhas com valor e prazo
 
 Alterar uma folha altera automaticamente a media do tronco.
@@ -87,14 +147,14 @@ Alterar o tronco redistribui a mudanca entre as folhas daquele tronco.
 
 ### Variaveis base
 
-O prototipo ja vem com 14 folhas de exemplo, entre elas:
+O prototipo ja vem com 69 folhas de como sementes, dentre elas temos alguns exemplos:
 
 - Sono consistente
 - Meditacao curta
 - Sessao de terapia
 - Caminhada diaria
 - Hidratacao
-- Alimentacao simples
+- Alimentação simples
 - Tempo com meu filho
 - Conversa de alinhamento
 - Rotina da casa
@@ -104,9 +164,53 @@ O prototipo ja vem com 14 folhas de exemplo, entre elas:
 - Autoconhecimento
 - Valores pessoais
 
-### Onde alterar cada folha do dashboard
+### Onde o usuário pode renomear, inseir mais folha, removê-las ou ocultá-las do seu perfil
 
-Se um novo desenvolvedor quiser mudar o nome, a descricao ou o comportamento de uma folha, estes sao os arquivos certos:
+Como o protótipo ainda está em fase te testes, ainda não fomos capaz de implantar definições de gênero, logo, algumas folhas podem ter nomes masculinizados, a saída do usuário atulmanete, seria poder alterar o nome das folhas através de um botão sinalizado por um tipo de "lápiz" no canto direito do card da própria folha.
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="public/docs/folhanome.png" height=150>
+    </td>
+    <td align="center">
+      <img src="public/docs/folhanomeM.png" height=150>
+    </td>
+  </tr>
+</table>
+
+Quando o usuário propõe pra se que as folhas que vieram como semente no nosso sistema não atendem todas as areas da sua vida, ele pode usar o botõa `+` no canto direito direito do nó de nível 2 (galhos)
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="public/docs/folha+.png" height=150>
+      <em>desktop view</em>
+    </td>
+    <td align="center">
+      <img src="public/docs/folha+M.png" height=150>
+      <em>mobile view</em>
+    </td>
+  </tr>
+</table>
+
+Para remover ou ocultar as folhas, inclusive as sementes base, é através de um botão de configuração localizado ao lado da mesma dentro do seu próprio card. Neste caso, revela-se os botões de "Excluir" e "Ocultar".
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="public/docs/folha-.png" height=150><br>
+      <em>desktop view</em>
+    </td>
+    <td align="center">
+      <img src="public/docs/folha-M.png" height=150><br>
+      <em>mobile view</em>
+    </td>
+  </tr>
+</table>
+
+
+
+### (Desenvolvimento) Onde alterar cada folha do dashboard
+
+Se um novo desenvolvedor quiser mudar o nome das sementes, a descricao ou o comportamento da delas (seja tronco, galhos ou folhas), estes sao os arquivos certos:
 
 - `src/js/services/variableService.js`
   - define o seed das folhas no array `leafSeed`
@@ -143,14 +247,14 @@ Resumo pratico:
 
 - Valor entre `49` e `99`
 - Prazo ou horizonte temporal
-- Observacao
+- Observação
 - Relacao com cardinal
-- Progresso calculado no card 10 e card 11
-- Revisao semanal com status bar de `-3` a `+3`
+- Progresso calculado no card 10
+- Revisão diária com status bar de `-3` a `+3` no pop-up do card 8
 
 ---
 
-## Como iniciar o app
+## (Desenvolvimento) Como iniciar o app
 
 Use o servidor local incluido no projeto:
 
@@ -217,7 +321,7 @@ Nesse caso:
 
 1. Abra o terminal na raiz do projeto.
 2. Execute `npm run dev`.
-3. Acesse `http://127.0.0.1:4173`.
+3. Acesse `http://127.0.0.1:4173`, ou outro endereço que o `npm run dev` retornar para você no terminal.
 
 ### 2. Entrar no app
 
@@ -314,32 +418,32 @@ Se o login falhar, normalmente o problema e um destes:
 
 ### Prioridade alta
 
-- Ligar as cardinais e folhas ao Firestore.
-- Substituir o estado em `localStorage` por dados reais do banco.
-- Criar cadastro e edicao real de folhas.
-- Criar cadastro e edicao real de cardinais.
+- Criar uma tela de "primeiro login" com perguntas para se obter o estado atual do usuário, e poder pré-estabelecer valores na hora de criar as sementes.
+- Criar sistema de gênero, e modo de tratamento.
+- Criar tela própria para cadastro e edicao real de folhas.
+- Criar tela própria para cadastro e edicao real de cardinais.
 
 ### Prioridade media
 
-- Salvar historico temporal.
-- Registrar progresso por sessao.
-- Persistir a pergunta semanal e o proximo passo concreto no Firestore.
 - Melhorar a busca do modal de folhas com filtros mais uteis.
+- Novos cards com informações mais relevantes.
+- Perfil de usário com foto, nome de usuário e possibilidade de trocar senha.
+- Popular `frases_dashboard.json` com pelo menos 15 conselhos para cada variável base.
 
 ### Prioridade futura
 
-- Multiplos perfis.
-- Backup e exportacao.
-- Historico grafico completo.
-- Conselhos automaticos da vez.
+- Tela dinâmica de acordo com o progresso e "passo concreto".
+- Backup e exportacao via JSON, CSV ou mesmo BIN.
+- Historico grafico mais completos completo.
+- Conselhos ganham novos parametros e são escolhidas de acordo com o quantidade de pontos que a variável atualmente tem.
 
 ---
 
 ## Observacoes importantes
 
 - O app ja esta com foco em mobile e desktop.
-- O card 10 fica oculto e e aberto pelo botao `...`.
-- O radar chart e desenhado em SVG, sem dependencia externa.
+- O card 10 e 11 fica oculto e pode ser aberto pelo botao `...`.
+- O radar chart é desenhado em SVG, sem dependência externa.
 - O projeto esta estruturado como PWA, mas ainda esta no estagio de prototipo funcional.
 
 ---
@@ -354,26 +458,5 @@ Se o login falhar, normalmente o problema e um destes:
 
 ### Antes de conectar o Firestore
 
-- Definir o formato das colecoes.
-- Definir como ficam cardinais, folhas e revisoes semanais.
-- Decidir se a alteracao em cardinais vai refletir automaticamente nas folhas.
-
-### Antes de publicar
-
-- Confirmar que o `index.html` da raiz e o ponto de entrada.
-- Confirmar que `manifest.json` e `sw.js` tambem estao na raiz.
-- Validar se o deploy escolhido vai servir arquivos staticos a partir da raiz.
-
----
-
-## Comando util
-
-```bash
-npm run dev
-```
-
-Se voce quiser, o proximo passo pode ser:
-
-1. conectar o Firestore de verdade,
-2. criar telas de cadastro das folhas,
-3. ou organizar o app para deploy no GitHub Pages ou Firebase Hosting.
+- Verificar os dados definidos e o formato das colecoes.
+- Verificar como ficam cardinais, folhas e revisoes semanais.
