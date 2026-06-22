@@ -63,7 +63,7 @@ O menu principal ja renderiza 11 cards:
       <img src="public/docs/4cards234567.png" height=250><br>
       <em>desktop view</em>
     </td>
-    <td>
+    <td align="center">
       <img src="public/docs/4cards234567M.png" height=250><br>
       <em>mobile view</em>
     </td>
@@ -83,7 +83,7 @@ O menu principal ja renderiza 11 cards:
       <em>desktop view</em>
     </td>
     <td align="center">
-      <img src="public/docs/2card8M.png" height=250>
+      <img src="public/docs/2card8M.png" height=250><br>
       <em>mobile view</em>
     </td>
   </tr>
@@ -92,7 +92,7 @@ O menu principal ja renderiza 11 cards:
 9.  Pergunta do proximo passo concreto com modal de busca das folhas ligado ao card 8.
 10. Card oculto com botao `...` para mostrar folhas alteradas e historico de valores.
 11. Organograma com o progresso das variaveis cardinais às cardinais.
-<a href="public/docs/6organograma.png">
+<a href="public/docs/6organograma.png" align="center">
   <p align=center>
     <img src="public/docs/6organograma.png" height=300><br>
     <em>downloaded from user exemple</em>
