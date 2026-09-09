@@ -1,11 +1,4 @@
-# Sobrecarga
-
-Sobrecarga e um app PWA para organizacao psicologica e acompanhamento pessoal em periodos de sobrecarga emocional, profissional ou familiar.
-
-O objetivo nao e produtividade e nem gestao de tarefas.
-O objetivo e dar clareza para o usuario revisar como esta, o que mudou e qual passo concreto merece atencao.
-
-É possivel acessar o MVP via GitHub Pages por:
+# ⚡️ Sobrecarga
 
 <p align="center">
   <a href="https://jimmykiedis.github.io/Sobrecarga/">
@@ -14,6 +7,13 @@ O objetivo e dar clareza para o usuario revisar como esta, o que mudou e qual pa
   <br>
   <em>Clique na imagem para acessar a demonstração.</em>
 </p>
+
+Sobrecarga e um app PWA para organizacao psicologica e acompanhamento pessoal em periodos de sobrecarga emocional, profissional ou familiar.
+
+O objetivo nao e produtividade e nem gestao de tarefas.
+O objetivo e dar clareza para o usuario revisar como esta, o que mudou e qual passo concreto merece atencao.
+
+É possivel acessar o MVP via GitHub Pages por:
 
 Obs.: é necessário ter acesso cadastrado antecimpadamente pelo proprietário
 
