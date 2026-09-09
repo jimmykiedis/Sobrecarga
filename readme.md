@@ -8,6 +8,8 @@
   <em>Clique na imagem para acessar a demonstração.</em>
 </p>
 
+---
+
 Sobrecarga e um app PWA para organizacao psicologica e acompanhamento pessoal em periodos de sobrecarga emocional, profissional ou familiar.
 
 O objetivo nao e produtividade e nem gestao de tarefas.
