@@ -2,313 +2,288 @@
 
 <p align="center">
   <a href="https://jimmykiedis.github.io/Sobrecarga/">
-    <img src="icons/tarja.png" height="55" alt="Abrir projeto">
+    <img src="icons/tarja.png" height="55" alt="Open Project">
   </a>
   <br>
-  <em>Clique na imagem para acessar a demonstração.</em>
+  <em>Click the image to access the live demo.</em>
 </p>
 
 ---
 
-Sobrecarga e um app PWA para organizacao psicologica e acompanhamento pessoal em periodos de sobrecarga emocional, profissional ou familiar.
+**Overload** is a PWA designed for psychological organization and personal tracking during periods of emotional, professional, or family overload.
 
-O objetivo nao e produtividade e nem gestao de tarefas.
-O objetivo e dar clareza para o usuario revisar como esta, o que mudou e qual passo concreto merece atencao.
+The goal is not productivity or task management.
 
-É possivel acessar o MVP via GitHub Pages por:
+The goal is to give the user clarity to review their current state, understand what has changed, and identify which concrete step deserves attention.
 
-Obs.: é necessário ter acesso cadastrado antecimpadamente pelo proprietário
+The MVP can be accessed through GitHub Pages.
 
-## O que ja esta implementado
+> **Note:** Access currently requires prior registration by the project owner.
 
-### Tela 1: Login
+---
 
-- Login com e-mail e senha.
-- Integracao com Firebase Authentication.
-- Tela responsiva com estado de carregamento e erro.
+## 🚧 Current Implementation
 
-<table align="center">
-  <tr>
-    <td align="center">
-      <img src="public/docs/1loginscreen.png" height=250><br>
-      <em>desktop view</em>
-    </td>
-    <td align="center">
-      <img src="public/docs/1loginscreenM.png" height=250><br>
-      <em>mobile view</em>
-    </td>
-  </tr>
-</table>
+### Screen 1: Login
 
-### Tela 2: Menu principal
+- Email and password authentication.
+- Firebase Authentication integration.
+- Responsive interface with loading and error states.
 
-O menu principal ja renderiza 11 cards:
+### Screen 2: Main Dashboard
 
-1. Resumo simples com os dados mais relevante com gráfico.
-<table align="center">
-  <tr>
-    <td align="center">
-      <img src="public/docs/3home.png" height=250><br>
-      <em>desktop view</em>
-    </td>
-    <td align="center">
-      <img src="public/docs/3homeM1.png" height=250><br>
-      <em>mobile view</em>
-    </td>
-  </tr>
-</table>
+The main dashboard currently renders 11 cards:
 
-2. Variaveis cardinais referentes aos campo da vida do usuário com valores entre `49` e `99`.
-<table align="center">
-  <tr>
-    <td align="center">
-      <img src="public/docs/4cards234567.png" height=250><br>
-      <em>desktop view</em>
-    </td>
-    <td align="center">
-      <img src="public/docs/4cards234567M.png" height=250><br>
-      <em>mobile view</em>
-    </td>
-  </tr>
-</table>
+1. **Simple summary** with relevant data and a chart.
+2. **Cardinal variables** representing key areas of the user's life, with values ranging from `49` to `99`.
+3. Card for base variables related to the `Identity` cardinal.
+4. Card for base variables related to the `Mental Health` cardinal.
+5. Card for base variables related to the `Physical Health` cardinal.
+6. Card for base variables related to the `Family` cardinal.
+7. Card for base variables related to the `Professional` cardinal.
+8. **Progress review pop-up**, asking about progress over a relative time period using a scale from `-3` to `+3`.
+9. **Concrete next-step question**, with a leaf-search modal connected to card 8.
+10. **Hidden card** with a `...` button to display changed leaves and value history.
+11. **Organizational chart** showing progress between cardinal variables.
 
-3. Card das Variáveis base ligadas à cardinal `Identidade`.
-4. Card das Variáveis base ligadas à cardinal `Saude Mental`.
-5. Card das Variáveis base ligadas à cardinal `Saude Fisica`.
-6. Card das Variáveis base ligadas à cardinal `Familia`.
-7. Card das Variáveis base ligadas à cardinal `Profissional`.
-8. Pop-up que pergunta do progresso em um intervalo relativo em uma escala de `-3` a `+3`.
-<table align="center">
-  <tr>
-    <td align="center">
-      <img src ="public/docs/2card8.png" height=250><br>
-      <em>desktop view</em>
-    </td>
-    <td align="center">
-      <img src="public/docs/2card8M.png" height=250><br>
-      <em>mobile view</em>
-    </td>
-  </tr>
-</table>
+---
 
-9.  Pergunta do proximo passo concreto com modal de busca das folhas ligado ao card 8.
-10. Card oculto com botao `...` para mostrar folhas alteradas e historico de valores.
-11. Organograma com o progresso das variaveis cardinais às cardinais.
-<a href="public/docs/6organograma.png" align="center">
-  <p align=center>
-    <img src="public/docs/6organograma.png" height=300><br>
-    <em>downloaded from user exemple</em>
-  </p>
-</a>
+## 📱 PWA
 
-
-
-### PWA
+The project is structured as a Progressive Web App and includes:
 
 - `manifest.json`
 - `sw.js`
-- icones SVG
-- registro automatico do service worker no navegador
-
-### Persistencia local
-
-- O estado da sessao e salvo por usuario no `localStorage`.
-- O app lembra:
-  - valores das cardinais
-  - valores das folhas
-  - pergunta semanal
-  - proximo passo concreto
-  - abertura do card oculto
-
-### Persistencia remota
-
-- O envio para o Firestore e automatico e continuo.
-- O app sincroniza ao abrir, ao retomar foco, ao voltar da suspensao e depois das alteracoes locais.
-- O botao `Salvar` continua como atalho opcional para forcar a sincronizacao.
-- O workspace leva metadados de revisao para ajudar a resolver conflitos entre dispositivos.
-- O `localStorage` e salvo automaticamente a cada alteracao.
-- O primeiro conjunto de cardinais e folhas aparece localmente como seed do prototipo.
+- SVG icons.
+- Automatic service worker registration in the browser.
 
 ---
 
-## Dados ja cadastrados no prototipo
+## 💾 Local Persistence
 
-### Variaveis cardinais
+The session state is stored per user using `localStorage`.
 
-O prototipo tem por regra 5 variáveis cardinais:
+The application remembers:
 
-- Identidade
-- Saude Mental
-- Saude Fisica
-- Familia
-- Profissional
+- Cardinal values.
+- Leaf values.
+- Weekly review question.
+- Concrete next step.
+- Hidden card visibility state.
 
-### Estrutura da arvore
-
-- Nivel 1: cards tronco
-  - Identidade
-  - Saude Mental
-  - Saude Fisica
-  - Familia
-  - Profissional
-- Nivel 2: cards internos (galhos) dentro de cada tronco
-- Nivel 3: folhas com valor e prazo
-
-Alterar uma folha altera automaticamente a media do tronco.
-Alterar o tronco redistribui a mudanca entre as folhas daquele tronco.
-
-### Variaveis base
-
-O prototipo ja vem com 69 folhas de como sementes, dentre elas temos alguns exemplos:
-
-- Sono consistente
-- Meditacao curta
-- Sessao de terapia
-- Caminhada diaria
-- Hidratacao
-- Alimentação simples
-- Tempo com meu filho
-- Conversa de alinhamento
-- Rotina da casa
-- Foco profundo
-- Priorizacao da semana
-- Aprendizado direcionado
-- Autoconhecimento
-- Valores pessoais
-
-### Onde o usuário pode renomear, inseir mais folha, removê-las ou ocultá-las do seu perfil
-
-Como o protótipo ainda está em fase te testes, ainda não fomos capaz de implantar definições de gênero, logo, algumas folhas podem ter nomes masculinizados, a saída do usuário atulmanete, seria poder alterar o nome das folhas através de um botão sinalizado por um tipo de "lápiz" no canto direito do card da própria folha.
-<table align="center">
-  <tr>
-    <td align="center">
-      <img src="public/docs/folhanome.png" height=150><br>
-      <em>desktop view</em>
-    </td>
-    <td align="center">
-      <img src="public/docs/folhanomeM.png" height=150><br>
-      <em>mobile view</em>
-    </td>
-  </tr>
-</table>
-
-Quando o usuário propõe pra se que as folhas que vieram como semente no nosso sistema não atendem todas as areas da sua vida, ele pode usar o botõa `+` no canto direito direito do nó de nível 2 (galhos)
-<table align="center">
-  <tr>
-    <td align="center">
-      <img src="public/docs/folha+.png" height=150><br>
-      <em>desktop view</em>
-    </td>
-    <td align="center">
-      <img src="public/docs/folha+M.png" height=150><br>
-      <em>mobile view</em>
-    </td>
-  </tr>
-</table>
-
-Para remover ou ocultar as folhas, inclusive as sementes base, é através de um botão de configuração localizado ao lado da mesma dentro do seu próprio card. Neste caso, revela-se os botões de "Excluir" e "Ocultar".
-<table align="center">
-  <tr>
-    <td align="center">
-      <img src="public/docs/folha-.png" height=150><br>
-      <em>desktop view</em>
-    </td>
-    <td align="center">
-      <img src="public/docs/folha-M.png" height=150><br>
-      <em>mobile view</em>
-    </td>
-  </tr>
-</table>
-
-
-
-### (Desenvolvimento) Onde alterar cada folha do dashboard
-
-Se um novo desenvolvedor quiser mudar o nome das sementes, a descricao ou o comportamento da delas (seja tronco, galhos ou folhas), estes sao os arquivos certos:
-
-- `src/js/services/variableService.js`
-  - define o seed das folhas no array `leafSeed`
-  - aqui ficam os campos principais de cada folha:
-    - `cardinalId`
-    - `nodeId`
-    - `nodeName`
-    - `name`
-    - `horizonDays`
-    - `currentValue`
-    - `targetValue`
-    - `note`
-    - `brothers`
-  - se quiser trocar o nome exibido por padrao no dashboard, altere o `name`
-  - se quiser trocar o texto-base da folha, altere `note`
-
-- `src/js/ui/dashboard.js`
-  - define o texto da ajuda contextual que aparece no `i` de cada folha
-  - o mapa de apoio esta em `leafHelpExamples`
-  - o modal que abre ao clicar no `i` esta em `renderLeafHelpModal`
-  - se a descricao da folha mudar, atualize tambem esse arquivo para manter a ajuda coerente com o nome novo
-
-- `src/assets/text/frases_dashboard.json`
-  - guarda as mensagens motivacionais ligadas ao nome da folha
-  - se a folha trocar de nome, vale revisar esse arquivo para manter as frases coerentes
-
-Resumo pratico:
-
-- `variableService.js` = onde a folha nasce e recebe nome/descricao base
-- `dashboard.js` = onde a folha explica para o usuario o que significa
-- `frases_dashboard.json` = onde ficam as mensagens de apoio associadas a ela
-
-### Regras das folhas
-
-- Valor entre `49` e `99`
-- Prazo ou horizonte temporal
-- Observação
-- Relacao com cardinal
-- Progresso calculado no card 10
-- Revisão diária com status bar de `-3` a `+3` no pop-up do card 8
+The `localStorage` state is automatically saved whenever a change occurs.
 
 ---
 
-## (Desenvolvimento) Como iniciar o app
+## ☁️ Remote Persistence
 
-Use o servidor local incluido no projeto:
+Data synchronization with Firestore is automatic and continuous.
+
+The application synchronizes:
+
+- When the application is opened.
+- When the application regains focus.
+- When returning from suspension.
+- After local changes.
+
+The `Save` button remains available as an optional shortcut to force synchronization.
+
+The workspace also stores review metadata to help resolve conflicts between devices.
+
+The first set of cardinal and leaf variables is loaded locally as the prototype's initial seed data.
+
+---
+
+# 📊 Prototype Data
+
+## Cardinal Variables
+
+The prototype currently uses five cardinal variables:
+
+- Identity
+- Mental Health
+- Physical Health
+- Family
+- Professional
+
+---
+
+## 🌳 Tree Structure
+
+The application's variable structure is organized into three levels:
+
+### Level 1 — Root Cards
+
+- Identity
+- Mental Health
+- Physical Health
+- Family
+- Professional
+
+### Level 2 — Internal Cards
+
+Branches inside each root/cardinal.
+
+### Level 3 — Leaves
+
+Individual variables containing values and time horizons.
+
+Changing a leaf automatically updates the average value of its parent cardinal.
+
+Changing the cardinal redistributes the change across the leaves belonging to that cardinal.
+
+---
+
+## 🌱 Base Variables
+
+The prototype currently includes **69 seeded leaves**, including examples such as:
+
+- Consistent sleep
+- Short meditation
+- Therapy session
+- Daily walk
+- Hydration
+- Simple meals
+- Time with my child
+- Alignment conversation
+- Home routine
+- Deep focus
+- Weekly prioritization
+- Focused learning
+- Self-awareness
+- Personal values
+
+---
+
+## ✏️ Customizing Leaves
+
+Users can rename leaves, add new ones, remove them, or hide them from their profile.
+
+Because the prototype is still under testing, gender definitions and forms of address have not yet been fully implemented. Some seeded leaves may therefore use masculine forms.
+
+The current solution is to allow users to rename leaves through an edit button represented by a pencil icon in the upper-right corner of each leaf card.
+
+### Adding New Leaves
+
+If the user determines that the seeded leaves do not cover all areas of their life, they can use the `+` button in the upper-right corner of a Level 2 node (branch) to add a new leaf.
+
+### Removing or Hiding Leaves
+
+Leaves, including the default seeded leaves, can be removed or hidden through a configuration button located next to the leaf inside its own card.
+
+This reveals the `Delete` and `Hide` actions.
+
+---
+
+# 🧑‍💻 Development: Where to Modify Each Dashboard Leaf
+
+If a new developer wants to change the name, description, or behavior of a leaf, branch, or cardinal, these are the relevant files.
+
+### `src/js/services/variableService.js`
+
+Defines the leaf seed data in the `leafSeed` array.
+
+Main fields for each leaf include:
+
+- `cardinalId`
+- `nodeId`
+- `nodeName`
+- `name`
+- `horizonDays`
+- `currentValue`
+- `targetValue`
+- `note`
+- `brothers`
+
+To change the default name displayed on the dashboard, modify `name`.
+
+To change the base description of the leaf, modify `note`.
+
+### `src/js/ui/dashboard.js`
+
+Defines the contextual help displayed when clicking the `i` icon on each leaf.
+
+Relevant elements include:
+
+- `leafHelpExamples`
+- `renderLeafHelpModal`
+
+If a leaf's description changes, this file should also be updated so that the contextual help remains consistent with the new name and description.
+
+### `src/assets/text/frases_dashboard.json`
+
+Stores motivational messages associated with each leaf name.
+
+If a leaf is renamed, this file should also be reviewed so that the messages remain consistent.
+
+### Practical Summary
+
+```text
+variableService.js     = where the leaf is created and receives its base name/description
+dashboard.js            = where the leaf explains its meaning to the user
+frases_dashboard.json   = where the supporting messages associated with the leaf are stored
+```
+
+
+
+---
+
+## 📐 Leaf Rules
+
+Each leaf contains:
+
+- Value between `49` and `99`.
+- Time horizon or deadline.
+- Note.
+- Relationship with its cardinal.
+- Progress calculated in card 10.
+- Daily review through a `-3` to `+3` status bar in the card 8 pop-up.
+
+---
+
+# 🛠 Development: How to Start the App
+
+Use the local development server included in the project:
 
 ```bash
 npm run dev
 ```
 
-Depois abra:
+Then open:
 
 ```text
 http://127.0.0.1:4173
 ```
 
-Importante:
+### Important
 
-- Abra o app pela raiz do repositorio, usando `index.html`.
-- Nao use mais `src/index.html`, porque ele foi removido.
-- Os arquivos do PWA tambem vivem na raiz:
+- Open the application from the repository root using `index.html`.
+- Do not use `src/index.html`, as it has been removed.
+- The PWA files are also located in the root directory:
   - `manifest.json`
   - `sw.js`
 
 ---
 
-## Provisionar usuario de acesso
+# 🔐 Provisioning an Access User
 
-Nao existe tela de criar conta. O usuario pode ser criado pelo backend usando o script de provisionamento.
+There is currently no account creation screen.
 
-### Script
+Users can be created through the backend using the provisioning script.
+
+## Script
 
 ```bash
 npm run provision:user
 ```
 
-### Variaveis necessarias
+## Required Variables
 
 - `FIREBASE_EMAIL`
 - `FIREBASE_PASSWORD`
-- opcional: `FIREBASE_DISPLAY_NAME`
+- Optional: `FIREBASE_DISPLAY_NAME`
 
-### Exemplo
+## Example
 
 ```powershell
 $env:FIREBASE_EMAIL="mail@mail.com"
@@ -316,54 +291,55 @@ $env:FIREBASE_PASSWORD="123456789"
 npm run provision:user
 ```
 
-### Importante
+## Important
 
-Se o Firebase retornar `CONFIGURATION_NOT_FOUND`, normalmente significa que o provedor `Email/Password` ainda nao esta habilitado no projeto.
-Nesse caso:
+If Firebase returns `CONFIGURATION_NOT_FOUND`, it usually means that the `Email/Password` authentication provider has not yet been enabled for the project.
 
-1. Abra o Firebase Console.
-2. Va em `Authentication`.
-3. Ative o provedor `Email/Password`.
-4. Salve.
-5. Rode o script novamente.
+In that case:
 
----
-
-## Guia rapido
-
-### 1. Rodar localmente
-
-1. Abra o terminal na raiz do projeto.
-2. Execute `npm run dev`.
-3. Acesse `http://127.0.0.1:4173`, ou outro endereço que o `npm run dev` retornar para você no terminal.
-
-### 2. Entrar no app
-
-1. Use um usuario com Authentication por e-mail e senha habilitado no Firebase.
-2. Faca login na tela inicial.
-3. O menu principal carrega com os dados de prototipo ja definidos.
-
-### 3. Validar o prototipo
-
-1. Ajuste uma cardinal no card 2.
-2. Abra a pergunta semanal no card 8.
-3. Use o card 9 para procurar uma folha.
-4. Abra o card 10 pelo botao `...`.
-5. Observe o card 11 com o grafico de progresso.
-
-### 4. Subir para o Firestore
-
-1. Faça as alterações desejadas.
-2. Confirme que o estado foi salvo localmente.
-3. Clique em `Salvar` no topo do menu principal.
-4. Aguarde a confirmacao de envio para o Firestore.
+1. Open the Firebase Console.
+2. Go to `Authentication`.
+3. Enable the `Email/Password` provider.
+4. Save the configuration.
+5. Run the provisioning script again.
 
 ---
 
-## Estrutura atual
+# ⚡ Quick Start Guide
+
+## 1. Run Locally
+
+1. Open a terminal in the project root.
+2. Run `npm run dev`.
+3. Open `http://127.0.0.1:4173`, or the address returned by `npm run dev` in the terminal.
+
+## 2. Sign In
+
+1. Use a user with Email/Password Authentication enabled in Firebase.
+2. Log in through the initial screen.
+3. The main dashboard loads with the prototype data already defined.
+
+## 3. Validate the Prototype
+
+1. Adjust a cardinal variable in card 2.
+2. Open the weekly question in card 8.
+3. Use card 9 to search for a leaf.
+4. Open card 10 using the `...` button.
+5. Observe the progress chart in card 11.
+
+## 4. Upload Data to Firestore
+
+1. Make the desired changes.
+2. Confirm that the state has been saved locally.
+3. Click `Save` at the top of the main dashboard.
+4. Wait for confirmation that the data has been sent to Firestore.
+
+---
+
+# 📁 Current Project Structure
 
 ```text
-sobrecarga/
+overload/
 ├── index.html
 ├── manifest.json
 ├── sw.js
@@ -406,71 +382,75 @@ sobrecarga/
 
 ---
 
-## Configuracao do Firebase
+# 🔥 Firebase Configuration
 
-Hoje a configuracao do Firebase fica centralizada em `src/js/firebase/firebaseConfig.js`.
+The Firebase configuration is currently centralized in:
 
-Isso evita divergencias entre `localhost`, GitHub Pages e scripts locais, porque a mesma origem de verdade alimenta o app e os utilitarios do projeto.
+```text
+src/js/firebase/firebase.js
+```
 
-### O que precisa existir no Firebase
+This avoids inconsistencies between `localhost`, GitHub Pages, and local scripts, since the same source of truth is used by the application and project utilities.
 
-- Authentication com login por e-mail e senha habilitado
-- Projeto Firebase ativo
-- Usuario cadastrado para teste
+## Firebase Requirements
 
-### Atencao
+The Firebase project must have:
 
-Se o login falhar, normalmente o problema e um destes:
+- Email/Password Authentication enabled.
+- An active Firebase project.
+- At least one registered test user.
 
-- e-mail ou senha invalidos
-- Authentication nao habilitado
-- usuario ainda nao criado no Firebase Console
+### Troubleshooting
 
----
+If login fails, the most common causes are:
 
-## O que ainda falta fazer
+- Invalid email or password.
+- Firebase Authentication not enabled.
+- The user has not yet been created in the Firebase Console.
 
-### Prioridade alta
+# 🚀 Roadmap
 
-- Criar uma tela de "primeiro login" com perguntas para se obter o estado atual do usuário, e poder pré-estabelecer valores na hora de criar as sementes.
-- Criar sistema de gênero, e modo de tratamento.
-- Criar tela própria para cadastro e edicao real de folhas.
-- Criar tela própria para cadastro e edicao real de cardinais.
+## High Priority
 
-### Prioridade media
+- Create a first-login screen with questions to determine the user's current state and pre-establish values when creating the initial seeds.
+- Implement a gender and form-of-address system.
+- Create a dedicated interface for creating and editing leaves.
+- Create a dedicated interface for creating and editing cardinal variables.
 
-- Melhorar a busca do modal de folhas com filtros mais uteis.
-- Novos cards com informações mais relevantes.
-- Perfil de usário com foto, nome de usuário e possibilidade de trocar senha.
-- Popular `frases_dashboard.json` com pelo menos 15 conselhos para cada variável base.
+## Medium Priority
 
-### Prioridade futura
+- Improve the leaf-search modal with more useful filters.
+- Add new cards with more relevant information.
+- Create a user profile with photo, username, and password-change functionality.
+- Populate `frases_dashboard.json` with at least 15 pieces of advice for each base variable.
 
-- Tela dinâmica de acordo com o progresso e "passo concreto".
-- Backup e exportacao via JSON, CSV ou mesmo BIN.
-- Historico grafico mais completos completo.
-- Conselhos ganham novos parametros e são escolhidas de acordo com o quantidade de pontos que a variável atualmente tem.
+## Future
 
----
-
-## Observacoes importantes
-
-- O app ja esta com foco em mobile e desktop.
-- O card 10 e 11 fica oculto e pode ser aberto pelo botao `...`.
-- O radar chart é desenhado em SVG, sem dependência externa.
-- O projeto esta estruturado como PWA, mas ainda esta no estagio de prototipo funcional.
+- Dynamic screens based on progress and the user's current "concrete step".
+- Backup and export through JSON, CSV, or BIN.
+- More complete graphical history.
+- Add new parameters to the advice system and select recommendations based on the variable's current score.
 
 ---
 
-## Checklist para continuar o projeto
+# 📝 Important Notes
 
-### Antes de mexer em dados reais
+- The application is currently focused on both mobile and desktop.
+- Cards 10 and 11 are hidden by default and can be opened using the `...` button.
+- The radar chart is rendered using SVG, with no external dependency.
+- The project is structured as a PWA but is still in the **functional prototype stage**.
 
-- Confirmar que o login do Firebase esta funcionando.
-- Criar ao menos um usuario de teste.
-- Validar se o `localStorage` atual atende o fluxo de prototipo.
+---
 
-### Antes de conectar o Firestore
+# ✅ Project Continuation Checklist
 
-- Verificar os dados definidos e o formato das colecoes.
-- Verificar como ficam cardinais, folhas e revisoes semanais.
+## Before Working with Real Data
+
+- Confirm that Firebase login is working.
+- Create at least one test user.
+- Validate whether the current `localStorage` implementation meets the prototype workflow.
+
+## Before Connecting Firestore
+
+- Verify the defined data and collection structure.
+- Verify how cardinals, leaves, and weekly reviews will be stored.
